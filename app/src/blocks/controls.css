@@ -1,0 +1,18 @@
+/* shared by slider, toggle and input: one ruled line tall, sitting on the paper */
+.ctl { display: flex; align-items: center; gap: 12px; height: var(--u); font: 500 12px/1 var(--f-mono); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.ctl label, .ctl .ctl-label { white-space: nowrap; }
+.ctl output { min-width: 4ch; text-align: right; color: var(--ink); font-size: 13px; }
+.ctl input[type="range"] {
+  flex: 1; min-width: 0; appearance: none; height: 4px; border-radius: 4px; cursor: pointer;
+  background: linear-gradient(to right, var(--pen) var(--pct), var(--rule) var(--pct));
+}
+.ctl input[type="range"]::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--paper); border: 2px solid var(--pen); box-shadow: 0 1px 4px var(--shadow); transition: transform .15s; }
+.ctl input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--paper); border: 2px solid var(--pen); }
+.ctl input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); }
+.ctl input[type="range"]:focus-visible { outline: 2px solid var(--pen); outline-offset: 4px; }
+.ctl .switch { width: 34px; height: 20px; border-radius: 999px; border: 0; padding: 2px; background: var(--rule); cursor: pointer; transition: background .25s; }
+.ctl .switch .knob { display: block; width: 16px; height: 16px; border-radius: 50%; background: var(--paper); box-shadow: 0 1px 3px var(--shadow); transition: transform .3s var(--ease); }
+.ctl .switch[aria-checked="true"] { background: var(--pen); }
+.ctl .switch[aria-checked="true"] .knob { transform: translateX(14px); }
+.ctl-input input { width: 9ch; font: 500 13px var(--f-mono); color: var(--ink); background: transparent; border: 0; border-bottom: 1.4px solid var(--frame); padding: 2px 0; }
+.ctl-input input:focus { outline: none; border-color: var(--pen); }

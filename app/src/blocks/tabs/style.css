@@ -1,0 +1,10 @@
+.x-tabs { margin-top: var(--u); }
+.tabs-row { display: flex; gap: 18px; height: var(--u); align-items: baseline; }
+.tab {
+  border: 0; background: none; padding: 0; cursor: pointer; line-height: var(--u);
+  font: 700 20px/var(--u) var(--f-hand); color: var(--ink-soft); position: relative;
+}
+.tab[aria-selected="true"] { color: var(--pen); }
+.tab[aria-selected="true"]::after { content: ""; position: absolute; left: -2px; right: -2px; bottom: 5px; height: 6px; background: var(--hl); z-index: -1; border-radius: 2px; }
+.tab-panel { animation: tabin .35s var(--ease); }
+@keyframes tabin { from { opacity: 0; } }

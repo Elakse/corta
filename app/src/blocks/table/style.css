@@ -1,0 +1,10 @@
+/* Table: a card above the paper. Header strip, hairline rows, a soft highlight under the pointer. */
+.tbl table { width: 100%; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+.tbl th, .tbl td { padding: 13px 22px; text-align: left; vertical-align: baseline; line-height: 1.35; white-space: nowrap; }
+.tbl th { background: var(--surface-2); font: 700 11px/1.35 var(--f-display); letter-spacing: .13em; text-transform: uppercase; color: var(--ink-soft); }
+.tbl th .katex { text-transform: none; letter-spacing: 0; font-size: 1.3em; }
+.tbl td { border-top: 1px solid var(--line); transition: background .2s; }
+.tbl thead + tbody tr:first-child td { border-top: 0; }
+.tbl td:first-child { font-weight: 600; }
+.tbl tbody tr:hover td { background: var(--glow); }
+@media (max-width: 720px) { .tbl th, .tbl td { padding: 11px 14px; } }

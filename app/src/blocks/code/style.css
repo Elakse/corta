@@ -1,0 +1,29 @@
+/* Code block: a card above the paper, one grid row per line, line numbers from a CSS counter. */
+.code-pre { margin: 0; padding: 14px 0 16px; font: 14px/22px var(--f-mono); tab-size: 4; counter-reset: ln; }
+.code-pre code { display: grid; width: max-content; min-width: 100%; font: inherit; }
+.code-pre .line { display: block; min-height: 22px; padding-right: 22px; white-space: pre; }
+.code-pre .line::before {
+  counter-increment: ln; content: counter(ln); display: inline-block; width: 46px; padding-right: 16px; text-align: right;
+  color: var(--ink-soft); opacity: .45; user-select: none;
+}
+.code-pre span[style*="--shiki-token-comment"] { font-style: italic; }
+.code-pre:focus-visible { outline-offset: -2px; }
+
+/* fenced code inside text blocks keeps sitting on the rules */
+.flow .rl-pre { margin: 0; font: 14.5px/var(--u) var(--f-mono); overflow-x: auto; overflow-y: hidden; white-space: pre; tab-size: 4; }
+.flow .rl-pre code { font: inherit; }
+.flow .rl-pre .line { display: inline; }
+:root {
+  --shiki-foreground: var(--ink);
+  --shiki-background: transparent;
+  --shiki-token-constant: var(--red);
+  --shiki-token-string: var(--red);
+  --shiki-token-string-expression: var(--red);
+  --shiki-token-comment: var(--ink-soft);
+  --shiki-token-keyword: var(--pen);
+  --shiki-token-parameter: var(--ink);
+  --shiki-token-function: var(--ink);
+  --shiki-token-punctuation: var(--ink-soft);
+  --shiki-token-link: var(--pen);
+}
+.flow .rl-pre span[style*="--shiki-token-comment"] { font-style: italic; }

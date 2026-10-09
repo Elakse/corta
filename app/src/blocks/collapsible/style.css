@@ -1,0 +1,23 @@
+.sol-toggle {
+  display: flex; align-items: baseline; gap: 8px; width: fit-content; height: var(--u); line-height: var(--u) !important;
+  padding: 0; border: 0; background: none; cursor: pointer;
+  font-family: var(--f-hand); font-weight: 700; font-size: 21px; color: var(--pen);
+}
+.sol-toggle svg { transition: rotate .3s var(--ease); align-self: center; }
+.sol[data-open="true"] > .sol-toggle svg { rotate: 90deg; }
+.sol-toggle:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; border-radius: 4px; }
+.sol-toggle .katex { font-size: .9em; }
+.sol-basis { font: 400 11.5px/1 var(--f-mono); color: var(--ink-soft); margin-left: 6px; }
+.sol-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s var(--ease); }
+.sol[data-open="true"] > .sol-body { grid-template-rows: 1fr; }
+.sol-body > div { overflow: hidden; min-height: 0; padding-left: var(--u); }
+.sol-body > div::after { content: ""; display: block; height: var(--u); }
+.solved-row { height: calc(var(--u) * 2); display: flex; align-items: center; }
+.solved {
+  height: var(--u); display: inline-flex; align-items: center; gap: 8px; border: 0; cursor: pointer;
+  font: 600 14px/1 var(--f-display); color: var(--paper); background: var(--pen); border-radius: 999px; padding: 0 16px;
+  transition: background .3s, transform .15s;
+}
+.solved:hover { transform: translateY(-1px); }
+.solved:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.solved[data-done="true"] { background: var(--learned-ink); }

@@ -1,0 +1,6 @@
+.x-callout { position: relative; margin-top: var(--u); padding-left: calc(var(--u) * .7); --c: var(--ink-soft); }
+.x-callout::before { content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; border-radius: 3px; background: var(--c); opacity: .75; }
+.x-callout.v-warning { --c: var(--red); }
+.x-callout.v-tip { --c: var(--learned-ink); }
+.x-callout.v-exam { --c: var(--pen); }
+.callout-title { font: 700 11.5px/var(--u) var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--c); }

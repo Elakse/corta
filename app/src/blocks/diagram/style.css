@@ -1,0 +1,5 @@
+/* Mermaid fallback (class and sequence diagrams): same card, Mermaid's own SVG inside */
+.mermaid-host { padding: 14px 16px; display: flex; justify-content: center; }
+.mermaid-host:empty { min-height: 96px; }
+.mermaid-host svg { max-width: 100%; height: auto; }
+.surface .block-error { margin: 12px; }

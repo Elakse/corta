@@ -1,0 +1,29 @@
+node_modules/
+dist/
+.env
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+server/data/
+test-results/
+playwright-report/
+.vite/
+*.log
+.transfer/
+
+# Personal study library (including original materials and processed extracts).
+/content/*
+!/content/README.md
+# Local design references and agent working notes.
+/prototypes/
+/Claude outputs/
+/docs/archive/
+/docs/IMPLEMENTATION_PROMPT.md
+# Local credentials and generated reports.
+.env.*
+!.env.example
+coverage/
+*.tsbuildinfo
+.DS_Store
+Thumbs.db

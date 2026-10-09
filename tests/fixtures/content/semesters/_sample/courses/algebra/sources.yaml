@@ -1,0 +1,6 @@
+# SAMPLE DATA. Files aren't included; the registry is what nodes cite.
+schema: 1
+sources:
+  - { id: apunte-u3, path: sources/bibliography/apunte-u3.pdf, kind: bibliography, title: Apunte de la Unidad 3, short: Apunte U3 }
+  - { id: teorica-7, path: sources/classes/teorica-07.pdf, kind: class, title: Teórica 7, short: Teórica 7 }
+  - { id: guia-3, path: sources/guides/guia-03.pdf, kind: guide, title: Guía de ejercicios 3, short: Guía 3 }

@@ -1,0 +1,69 @@
+# SAMPLE DATA: one of each visual/control block, so the ruler test covers them.
+schema: 1
+id: alg/p1/repr
+kind: section
+number: "3.3"
+title: Otras representaciones
+vars:
+  k: 1
+  showAxes: true
+  a: 0.5
+body:
+  - node:
+      id: alg/p1/repr/chi
+      kind: example
+      title: El polinomio característico como función
+      sources: [{ basis: generated }]
+      relations: [{ type: example-of, target: alg/p1/autoval/pol-car }]
+      body:
+        - text: 'Para la matriz simétrica'
+        - math: 'A = \begin{pmatrix} 2 & {{k}} \\ {{k}} & 2 \end{pmatrix}'
+        - text: 'las raíces de $\chi_A$ son $2 \pm k$. Mové $k$ y mirá cómo se separan:'
+        - columns:
+            - - graph2d:
+                  view: { x: [-2, 6], y: [-3, 5] }
+                  plots: [ { fn: "(x - 2) * (x - 2) - k * k" } ]
+                  points:
+                    - { at: ["2 - k", 0], color: red, label: "λ₁" }
+                    - { at: ["2 + k", 0], color: red, label: "λ₂" }
+            - - slider: { var: k, min: 0, max: 3, step: 0.1, label: k }
+              - text: 'Autovalores: $\lambda = 2 \pm {{k}}$'
+              - callout:
+                  variant: exam
+                  title: Cómo se toma
+                  body:
+                    - text: Suelen pedir el polinomio y sus raíces, no el gráfico.
+  - node:
+      id: alg/p1/repr/forma
+      kind: example
+      title: Una forma cuadrática en 3D
+      sources: [{ basis: generated }]
+      body:
+        - slider: { var: a, min: -1, max: 1, step: 0.05, label: a }
+        - graph3d:
+            surfaces: [ { z: "a * (x*x - y*y)", color: pen } ]
+            vectors: [ { to: [1, 1, 0], color: red, label: v } ]
+  - node:
+      id: alg/p1/repr/metodo
+      kind: method
+      title: Cómo encarar un ejercicio de autovalores
+      sources: [{ ref: guia-3, basis: inferred }]
+      body:
+        - tabs:
+            tabs:
+              - label: Pasos
+                body:
+                  - text: |
+                      1. Calcular $\chi_A(\lambda) = \det(A - \lambda I)$.
+                      2. Hallar sus raíces.
+                      3. Para cada raíz, resolver $(A - \lambda I)v = 0$.
+              - label: Diagrama
+                body:
+                  - diagram:
+                      code: |
+                        flowchart LR
+                          A["χ(λ) = det(A − λI)"] --> B[Raíces λ]
+                          B --> C["(A − λI)v = 0"]
+                          C --> D[Autovectores]
+        - toggle: { var: showAxes, label: Mostrar ejes }
+        - input: { var: k, label: "k (también lo mueve el slider)", type: number, min: 0, max: 3, step: 0.1 }

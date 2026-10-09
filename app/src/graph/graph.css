@@ -1,0 +1,48 @@
+/* Diagram drawing. Colors only from tokens; node tones and edge styles are plain CSS classes. */
+.gv-scroll { padding: 14px 16px; }
+.gv { display: block; width: 100%; height: auto; margin: 0 auto; overflow: visible; }
+
+/* edges */
+.gv-edge { --edge: var(--ink-soft); transition: opacity .25s; }
+.gv-edge .line { fill: none; stroke: var(--edge); stroke-width: 1.7; stroke-linecap: round; opacity: .8; transition: stroke .2s, stroke-width .2s, opacity .2s; }
+.gv-edge .arrow { fill: var(--edge); opacity: .9; transition: fill .2s; }
+.gv-edge .hit { fill: none; stroke: transparent; stroke-width: 16; cursor: pointer; }
+.gv-edge .chip rect { fill: var(--card); stroke: var(--line); stroke-width: 1; }
+.gv-edge .chip text { font: 500 11.5px var(--f-mono); fill: var(--ink-soft); text-anchor: middle; transition: fill .2s; }
+.edge-dashed .line { stroke-dasharray: 6 6; }
+.edge-strong { --edge: var(--pen); }
+.edge-strong .line { stroke-width: 2.8; opacity: 1; }
+.edge-strong .chip text { fill: var(--pen); }
+.edge-muted .line { stroke-dasharray: 3 6; opacity: .45; }
+.edge-muted .arrow, .edge-muted .chip { opacity: .55; }
+
+/* nodes */
+.gv-node { cursor: pointer; outline: none; transition: opacity .25s; transform-box: fill-box; transform-origin: center; }
+.gv-node .shape { fill: var(--paper); stroke: var(--frame); stroke-width: 1.6; stroke-linejoin: round; transition: stroke .2s, fill .2s, filter .2s; }
+.gv-node .lbl { font: 600 14px var(--f-display); fill: var(--ink); text-anchor: middle; pointer-events: none; }
+.gv-node.filled .shape { fill: var(--ink); stroke: var(--ink); }
+.gv-node.ring .shape { fill: var(--paper); stroke: var(--ink); stroke-width: 1.8; }
+.gv-node .deco { fill: var(--ink); stroke: none; }
+.gv-node.tone-accent .shape { stroke: var(--pen); fill: color-mix(in srgb, var(--pen) 16%, var(--paper)); }
+.gv-node.tone-ok .shape { stroke: var(--learned-ink); fill: color-mix(in srgb, var(--learned-ink) 14%, var(--paper)); }
+.gv-node.tone-warn .shape { stroke: var(--red); fill: color-mix(in srgb, var(--red) 14%, var(--paper)); }
+.gv-node:hover .shape, .gv-node:focus-visible .shape { stroke: var(--pen); filter: drop-shadow(0 0 7px var(--glow)); }
+.gv-node.filled:hover .shape { stroke: var(--pen); fill: var(--pen); }
+
+/* focus: everything not on the path fades back */
+.is-focus .gv-node, .is-focus .gv-edge { opacity: .16; }
+.is-focus .gv-node.on, .is-focus .gv-edge.on { opacity: 1; }
+.is-focus .gv-edge.on .line { stroke: var(--pen); opacity: 1; stroke-width: 2.4; }
+.is-focus .gv-edge.on .arrow { fill: var(--pen); opacity: 1; }
+.is-focus .gv-edge.on .chip text { fill: var(--pen); }
+.is-focus .gv-node.on .shape { stroke: var(--pen); }
+
+/* entrance: nodes fade in layer by layer, solid lines draw themselves, the rest fades in */
+@keyframes gv-draw { from { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); } to { stroke-dasharray: var(--len); stroke-dashoffset: 0; } }
+@keyframes gv-fade { from { opacity: 0; } }
+.gv:not(.is-in) .gv-node, .gv:not(.is-in) .gv-edge { opacity: 0; }
+.gv.is-in .gv-node .shape, .gv.is-in .gv-node .lbl, .gv.is-in .gv-node .deco { animation: gv-fade .5s var(--ease) backwards; animation-delay: calc(var(--l) * 110ms); }
+.gv.is-in .gv-edge .line { animation: gv-fade .45s ease backwards; animation-delay: calc(var(--l) * 110ms + 420ms); }
+.gv.is-in .edge-solid .line, .gv.is-in .edge-strong .line { animation: gv-draw .7s var(--ease) backwards; animation-delay: calc(var(--l) * 110ms + 160ms); }
+.gv.is-in .gv-edge .arrow, .gv.is-in .gv-edge .chip { animation: gv-fade .45s ease backwards; animation-delay: calc(var(--l) * 110ms + 420ms); }
+@media (prefers-reduced-motion: reduce) { .gv *, .gv.is-in * { animation: none !important; } }

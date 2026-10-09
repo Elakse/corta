@@ -1,0 +1,16 @@
+.blk-graph .MafsView {
+  --mafs-bg: transparent;
+  --mafs-fg: var(--ink);
+  --mafs-origin-color: var(--ink-soft);
+  --mafs-line-color: var(--rule);
+  --mafs-blue: var(--pen);
+  --mafs-red: var(--red);
+  --mafs-green: var(--learned-ink);
+  font-family: var(--f-mono);
+  border-radius: 2px;
+}
+.graph3d { border-radius: 2px; overflow: hidden; cursor: grab; }
+.graph3d:active { cursor: grabbing; }
+.kit-plane { width: 100%; }
+.kit-plane svg { display: block; }
+.canvas-host { width: 100%; }

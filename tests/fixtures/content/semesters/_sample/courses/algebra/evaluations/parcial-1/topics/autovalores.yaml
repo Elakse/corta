@@ -1,0 +1,78 @@
+# SAMPLE DATA: the prototype's eigenvalues page, as content.
+schema: 1
+id: alg/p1/autoval
+kind: section
+number: "3.1"
+title: Autovalores y autovectores
+weight: 2
+vars:
+  theta: 20
+  vTxt: "(1.13, 0.41)"
+  avTxt: "(2.66, 1.95)"
+  eigenMsg: "Av no es paralelo a v"
+body:
+  - node:
+      id: alg/p1/autoval/def
+      kind: definition
+      title: Autovalor y autovector
+      note: "¡ojo! v ≠ 0 siempre"
+      sources: [{ ref: apunte-u3, page: 12, basis: explicit }]
+      body:
+        - text: |
+            Sea $A \in \mathbb{K}^{n \times n}$. Un escalar $\lambda \in \mathbb{K}$ es un ==autovalor== de $A$ si existe un vector $v \neq 0$ tal que
+        - math: 'A\,v = \lambda\, v'
+        - text: |
+            En ese caso, $v$ es un ==autovector== de $A$ asociado a $\lambda$. Geométricamente: $A$ no cambia la dirección de $v$, sólo lo estira por $\lambda$.
+        - columns:
+            - - canvas:
+                  module: eigen-demo
+                  height: 9
+                  reads: [theta]
+                  writes: [theta, vTxt, avTxt, eigenMsg]
+                  describe: "v (azul) gira con θ; Av (rojo) es su imagen por A = [[2,1],[1,2]]; las rectas punteadas son las direcciones propias (λ = 3 y λ = 1)."
+              - slider: { var: theta, min: 0, max: 359, label: "θ", unit: "°" }
+            - - text: "Girá $v$ y mirá qué le hace"
+              - math: 'A = \begin{pmatrix} 2 & 1 \\ 1 & 2 \end{pmatrix}'
+              - text: |
+                  **v** = `{{vTxt}}`
+
+                  **Av** = `{{avTxt}}`
+
+                  {{eigenMsg}}
+
+                  Las rectas punteadas son las únicas direcciones donde eso pasa.
+  - node:
+      id: alg/p1/autoval/pol-car
+      kind: property
+      title: Polinomio característico
+      sources: [{ ref: teorica-7, locator: diap. 4, basis: explicit }]
+      relations: [{ type: prerequisite, target: alg/p1/autoval/def }]
+      body:
+        - text: '$\lambda$ es autovalor de $A$ si y sólo si $A - \lambda I$ no es inversible, es decir:'
+        - math: '\chi_A(\lambda) = \det(A - \lambda I) = 0'
+        - table:
+            columns: [Matriz, '$\chi_A(\lambda)$', Autovalores]
+            rows:
+              - ['$\begin{pmatrix} 2 & 1 \\ 1 & 2 \end{pmatrix}$', '$(\lambda - 3)(\lambda - 1)$', '$3,\ 1$']
+              - ['$\begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}$', '$\lambda^2 + 1$', 'ninguno en $\mathbb{R}$ (rotación)']
+  - node:
+      id: alg/p1/autoval/thm-li
+      kind: theorem
+      title: Independencia de autovectores
+      sources: [{ ref: apunte-u3, page: 15, basis: explicit }]
+      relations: [{ type: prerequisite, target: alg/p1/autoval/def }]
+      body:
+        - text: |
+            Si $v_1, \dots, v_k$ son autovectores de $A$ asociados a autovalores ==distintos== $\lambda_1, \dots, \lambda_k$, entonces $\{v_1, \dots, v_k\}$ es linealmente independiente.
+        - node:
+            id: alg/p1/autoval/thm-li/dem
+            kind: proof
+            title: Demostración
+            sources: [{ ref: apunte-u3, page: 15, basis: explicit }]
+            body:
+              - collapsible:
+                  label: Demostración
+                  body:
+                    - text: 'Inducción en $k$. Supongamos $a_1 v_1 + \dots + a_k v_k = 0$. Aplicando $A$ y restando $\lambda_k$ veces la ecuación original:'
+                    - math: '\sum_{i=1}^{k-1} a_i(\lambda_i - \lambda_k)\, v_i = 0'
+                    - text: 'Por hipótesis inductiva y $\lambda_i \neq \lambda_k$, todos los $a_i = 0$ con $i < k$; luego $a_k v_k = 0$ y $a_k = 0$. $\blacksquare$'

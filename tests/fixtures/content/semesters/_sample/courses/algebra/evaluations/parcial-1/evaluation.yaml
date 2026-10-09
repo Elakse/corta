@@ -1,0 +1,8 @@
+schema: 1
+id: parcial-1
+title: Parcial 1
+paper: ruled
+topics:
+  - autovalores.yaml
+  - practica.yaml
+  - representaciones.yaml

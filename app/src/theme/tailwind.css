@@ -1,0 +1,43 @@
+/* Tailwind reads the design tokens. Values live in tokens.ts (injected as CSS variables); only names are mapped here. */
+@import "tailwindcss";
+
+@theme inline {
+  --color-desk: var(--desk);
+  --color-paper: var(--paper);
+  --color-rule: var(--rule);
+  --color-frame: var(--frame);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-pen: var(--pen);
+  --color-red: var(--red);
+  --color-card: var(--card);
+  --color-tape: var(--tape);
+  --color-hole: var(--hole);
+  --color-shadow: var(--shadow);
+  --color-hl: var(--hl);
+  --color-learned: var(--learned);
+  --color-learned-ink: var(--learned-ink);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-glow: var(--glow);
+  --color-code: var(--code);
+  --color-thumb: var(--thumb);
+  --color-thumb-hover: var(--thumb-hover);
+  --color-ev-class: var(--ev-class);
+  --color-ev-midterm: var(--ev-midterm);
+  --color-ev-retake: var(--ev-retake);
+  --color-ev-final: var(--ev-final);
+  --color-ev-submission: var(--ev-submission);
+  --color-ev-session: var(--ev-session);
+  --color-ev-holiday: var(--ev-holiday);
+  --font-body: var(--f-body);
+  --font-display: var(--f-display);
+  --font-hand: var(--f-hand);
+  --font-mono: var(--f-mono);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+  --ease-corta: var(--ease);
+}

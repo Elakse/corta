@@ -1,0 +1,37 @@
+# SAMPLE DATA
+schema: 1
+id: alg/p1/practica
+kind: section
+number: "3.2"
+title: Práctica
+body:
+  - node:
+      id: alg/p1/autoval/ej-g3-4
+      kind: exercise
+      title: Guía 3 · Ej. 4
+      origin: { ref: guia-3, locator: Ej. 4 }
+      sources: [{ ref: guia-3, page: 2, basis: explicit }]
+      relations: [{ type: prerequisite, target: alg/p1/autoval/pol-car }]
+      body:
+        - text: Hallar los autovalores y autovectores de
+        - math: 'A = \begin{pmatrix} 4 & 1 \\ 2 & 3 \end{pmatrix}'
+        - exercise:
+            solution:
+              basis: generated
+              body:
+                - math: '\chi_A(\lambda) = (4-\lambda)(3-\lambda) - 2 = \lambda^2 - 7\lambda + 10 = (\lambda - 5)(\lambda - 2)'
+                - text: '$\lambda_1 = 5$: $(A - 5I)v = 0 \Rightarrow -x + y = 0$, entonces $v_1 = (1, 1)$.'
+                - text: '$\lambda_2 = 2$: $(A - 2I)v = 0 \Rightarrow 2x + y = 0$, entonces $v_2 = (1, -2)$.'
+  - node:
+      id: alg/p1/autoval/numpy
+      kind: method
+      title: Verificar con NumPy
+      sources: [{ basis: generated }]
+      relations: [{ type: uses, target: alg/p1/autoval/ej-g3-4 }]
+      body:
+        - code:
+            lang: python
+            code: |
+              import numpy as np
+              A = np.array([[4, 1], [2, 3]])
+              vals, vecs = np.linalg.eig(A)   # vals → [5., 2.]

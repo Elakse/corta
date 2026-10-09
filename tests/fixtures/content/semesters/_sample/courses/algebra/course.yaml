@@ -1,0 +1,24 @@
+# SAMPLE DATA (ported from prototypes/notebook-page). Not a real course.
+schema: 1
+id: algebra
+name: Álgebra Lineal
+code: EJ-01
+language: es
+idPrefix: alg
+staff:
+  - { name: Prof. Ejemplo, role: Teórica, contact: profe@example.com }
+  - { name: JTP Ejemplo, role: Práctica }
+locations:
+  - { id: aula-1, campus: Sede Centro, room: Aula 1 }
+modality: in-person
+links:
+  - { label: Campus virtual, url: "https://example.com/campus" }
+schedule:
+  - { id: teorica, label: Teórica, weekday: mon, start: "18:00", end: "21:00", from: 2026-08-10, until: 2026-12-07, location: aula-1, exceptions: [2026-10-12] }
+  - { id: practica, label: Práctica, weekday: thu, start: "18:00", end: "21:00", from: 2026-08-13, until: 2026-12-10, location: aula-1 }
+bibliography: [apunte-u3]
+evaluations:
+  - { id: parcial-1, kind: midterm, title: Parcial 1, date: 2026-11-12, start: "18:00", end: "21:00", location: aula-1, scope: "Unidades 1 a 3", passing: "Nota ≥ 4" }
+  - { id: recuperatorio-1, kind: retake, title: Recuperatorio 1, date: 2026-11-26, start: "18:00", end: "21:00", retakes: parcial-1 }
+  - { id: final, kind: final, title: Final, date: 2026-12-10, start: "09:00", end: "12:00" }
+promotion: "Ejemplo: promoción con ambos parciales ≥ 7."

@@ -1,0 +1,12 @@
+# SAMPLE DATA: a hand-written fixture used as the test bed (ruler test, e2e). Not a real course.
+schema: 1
+id: _sample
+label: Ejemplo
+sample: true
+start: 2026-08-10
+end: 2026-12-12
+active: false
+courses: [algebra]
+holidays:
+  - { date: 2026-10-12, label: Día del Respeto a la Diversidad Cultural }
+  - { date: 2026-11-23, label: Día de la Soberanía Nacional }

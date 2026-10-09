@@ -1,0 +1,95 @@
+/* App chrome. Colors, fonts and radii come from tokens (theme/tokens.ts) via CSS variables. */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh; background: var(--desk); color: var(--ink);
+  font: 16px/1.5 var(--f-body); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
+button { font: inherit; color: inherit; }
+::selection { background: var(--hl); }
+:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
+
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+.app-main { flex: 1; min-width: 0; }
+.page-pad { padding: 24px clamp(16px, 3vw, 40px) 64px; }
+
+/* ---------- top bar ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 40; height: 60px; display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 0 clamp(16px, 3vw, 40px);
+  background: color-mix(in srgb, var(--desk) 78%, transparent); backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid transparent; transition: border-color .3s;
+}
+.topbar-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font: 700 19px/1 var(--f-display); letter-spacing: -.02em; flex: none; }
+.brand .logo-half-r { transform: translate(.35px, 1.6px); transition: transform .6s var(--ease); }
+.brand:hover .logo-half-r { transform: none; }
+@media (prefers-reduced-motion: reduce) { .brand .logo-half-r { transition: none; } }
+.crumbs { display: flex; align-items: center; min-width: 0; overflow: hidden; font: 500 14px/1 var(--f-display); }
+.crumb { display: inline-flex; align-items: center; gap: 4px; min-width: 0; white-space: nowrap; }
+.crumb a { color: var(--ink-soft); text-decoration: none; padding: 6px 4px; border-radius: 6px; transition: color .2s; }
+.crumb a:hover { color: var(--ink); }
+.crumb [aria-current] { color: var(--ink); padding: 6px 4px; overflow: hidden; text-overflow: ellipsis; }
+.crumb-sep { color: var(--frame); flex: none; margin-left: 4px; }
+.icon-btn {
+  display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; border: 0; background: transparent;
+  color: var(--ink-soft); cursor: pointer; transition: background .2s, color .2s;
+}
+.icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+.ask-btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 8px 0 14px; border-radius: 12px; border: 0; cursor: pointer;
+  background: var(--ink); color: var(--paper); font: 600 14px/1 var(--f-display); transition: transform .2s var(--ease), box-shadow .3s;
+  box-shadow: 0 6px 18px -8px var(--shadow);
+}
+.ask-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px -10px var(--pen); }
+.ask-btn kbd { font: 500 11px/1 var(--f-mono); padding: 5px 6px; border-radius: 6px; background: color-mix(in srgb, var(--paper) 14%, transparent); }
+@media (max-width: 720px) { .ask-btn span, .ask-btn kbd { display: none; } .ask-btn { padding: 0 11px; } .crumbs .crumb:not(:last-child) { display: none; } }
+
+/* ---------- toasts ---------- */
+.toasts { position: fixed; bottom: 20px; left: 50%; translate: -50% 0; z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+.toast {
+  pointer-events: auto; border: 0; cursor: pointer; max-width: min(520px, 92vw); padding: 12px 18px; border-radius: 14px;
+  font: 500 14px/1.4 var(--f-display); background: var(--ink); color: var(--paper); box-shadow: 0 12px 32px -12px var(--shadow);
+}
+.toast.t-error { background: var(--red); color: #fff; }
+.toast.t-success { background: var(--learned-ink); color: #fff; }
+
+/* ---------- content issues ---------- */
+.error-panel { max-width: 920px; margin: 32px auto; background: var(--paper); border-radius: 18px; padding: 32px clamp(20px, 4vw, 44px); box-shadow: 0 1px 2px var(--shadow), 0 24px 48px -24px var(--shadow); }
+.error-panel h1 { margin: 0 0 6px; font: 700 30px/1.15 var(--f-display); letter-spacing: -.02em; color: var(--red); }
+.error-lead { margin: 0 0 22px; color: var(--ink-soft); }
+.issues { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.issues li { padding: 12px 0 12px 16px; border-left: 3px solid var(--red); }
+.issues li[data-severity="warning"] { border-color: var(--ev-retake); }
+.issues li + li { border-top: 1px solid var(--line); }
+.issue-where { display: flex; flex-wrap: wrap; gap: 8px; font: 500 12px/1.5 var(--f-mono); color: var(--ink-soft); }
+.issue-path { color: var(--pen); }
+.issue-msg { font: 500 15px/1.45 var(--f-body); margin-top: 2px; }
+.issue-hint { font: 400 13px/1.45 var(--f-mono); color: var(--ink-soft); margin-top: 4px; }
+.cw { position: fixed; left: 18px; bottom: 18px; z-index: 60; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.cw-btn { display: inline-flex; align-items: center; gap: 8px; border: 0; cursor: pointer; padding: 9px 14px; border-radius: 12px; font: 600 13px/1 var(--f-display); background: var(--paper); color: var(--ev-retake); box-shadow: 0 6px 20px -8px var(--shadow); }
+.cw-btn.has-errors { color: var(--red); }
+.cw-list { position: relative; width: min(560px, calc(100vw - 36px)); max-height: 60vh; overflow: auto; background: var(--paper); border-radius: 16px; padding: 18px 20px; box-shadow: 0 20px 48px -16px var(--shadow); }
+.cw-close { position: absolute; top: 8px; right: 8px; }
+
+.center-note { display: grid; place-items: center; gap: 16px; min-height: 50vh; text-align: center; }
+.hand-note, .empty-note { font: 600 26px/1.2 var(--f-hand); color: var(--ink-soft); }
+.link-btn { font: 600 14px/1 var(--f-display); color: var(--pen); text-decoration: none; }
+
+/* ---------- scrollbars: a hairline track with a chunky, easy-to-grab handle ---------- */
+* { scrollbar-width: thin; scrollbar-color: var(--thumb) transparent; } /* Firefox */
+@supports selector(::-webkit-scrollbar) {
+  * { scrollbar-width: auto; scrollbar-color: auto; }
+  ::-webkit-scrollbar { width: 16px; height: 16px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-track:vertical { background: linear-gradient(var(--line), var(--line)) center / 2px 100% no-repeat; }
+  ::-webkit-scrollbar-track:horizontal { background: linear-gradient(var(--line), var(--line)) center / 100% 2px no-repeat; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--thumb); border: 4px solid transparent; background-clip: padding-box; border-radius: 999px;
+    min-width: 48px; min-height: 48px; transition: background .2s;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--thumb-hover); }
+  ::-webkit-scrollbar-thumb:active { background: var(--pen); }
+  ::-webkit-scrollbar-corner { background: transparent; }
+}

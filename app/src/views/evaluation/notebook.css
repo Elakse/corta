@@ -1,0 +1,259 @@
+/* The evaluation page: a desk with one spiral-notebook sheet that grows with the content.
+   Every text line sits on a ruled line (unit --u); see core/ruler. Ported from prototypes/notebook-page. */
+
+.desk-page {
+  padding: 8px 16px 72px;
+  font: 17px/var(--u) var(--f-body);
+  color: var(--ink);
+}
+
+/* ---------- desk toolbar ---------- */
+.desk-bar { max-width: 1040px; margin: 0 auto 18px; display: flex; justify-content: flex-end; gap: 12px; align-items: center; }
+.paper-switch { display: inline-flex; background: var(--paper); border-radius: 999px; padding: 4px; box-shadow: 0 1px 3px var(--shadow); }
+.paper-switch button {
+  font: 500 13px/1 var(--f-display); letter-spacing: .02em; color: var(--ink-soft);
+  border: 0; background: none; padding: 9px 14px 9px 34px; border-radius: 999px; cursor: pointer; position: relative;
+  transition: color .2s, background .2s;
+}
+.paper-switch button::before {
+  content: ""; position: absolute; left: 12px; top: 50%; width: 15px; height: 15px; translate: 0 -50%;
+  border: 1.2px solid currentColor; border-radius: 3px; opacity: .8;
+}
+.paper-switch button[data-paper="ruled"]::before { background: repeating-linear-gradient(to bottom, transparent 0 3px, currentColor 3px 4px); }
+.paper-switch button[data-paper="grid"]::before {
+  background: repeating-linear-gradient(to bottom, transparent 0 3px, currentColor 3px 4px),
+              repeating-linear-gradient(to right, transparent 0 3px, currentColor 3px 4px);
+}
+.paper-switch button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.paper-switch button:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
+
+/* ---------- the sheet ---------- */
+.sheet {
+  position: relative; max-width: 1040px; margin: 0 auto;
+  background: var(--paper);
+  padding: 34px 40px 48px var(--margin);
+  border-radius: 3px 6px 6px 3px;
+  box-shadow: 0 1px 2px var(--shadow), 0 18px 40px -18px var(--shadow);
+  animation: lay .7s var(--ease) both;
+}
+@keyframes lay { from { transform: translateY(14px) rotate(-.4deg); opacity: 0; } }
+
+.spiral {
+  position: absolute; top: 12px; bottom: 12px; left: -16px; width: 40px; pointer-events: none; z-index: 3;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='18' viewBox='0 0 40 18'%3E%3Cdefs%3E%3ClinearGradient id='w' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23f6f7fa'/%3E%3Cstop offset='.5' stop-color='%23b7bcc6'/%3E%3Cstop offset='1' stop-color='%23686e79'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cellipse cx='31' cy='9.5' rx='2.6' ry='3.4' fill='rgba%2820%2C18%2C30%2C.55%29'/%3E%3Cpath d='M30.5 7 C24 1.2 9 0.6 4.2 6.2 C1.4 9.6 3.6 14.6 9.5 15.6 L16 15.8' fill='none' stroke='rgba%280%2C0%2C0%2C.25%29' stroke-width='3.6' stroke-linecap='round' transform='translate%28.7 1.2%29'/%3E%3Cpath d='M30.5 7 C24 1.2 9 0.6 4.2 6.2 C1.4 9.6 3.6 14.6 9.5 15.6 L16 15.8' fill='none' stroke='url%28%23w%29' stroke-width='2.9' stroke-linecap='round'/%3E%3Cpath d='M27 4.6 C21 2 12 1.8 7.5 4.4' fill='none' stroke='rgba%28255%2C255%2C255%2C.9%29' stroke-width='.9' stroke-linecap='round'/%3E%3C/svg%3E") 0 0 / 40px 18px repeat-y;
+}
+.binder {
+  position: absolute; top: 0; bottom: 0; left: 24px; width: 20px; pointer-events: none;
+  background: radial-gradient(circle 8.5px at 10px 50%, var(--desk) 78%, color-mix(in srgb, var(--desk) 70%, #000) 88%, transparent 100%) 0 -60px / 20px 520px repeat-y;
+}
+
+/* header box like the printed notebook */
+.head {
+  display: grid; grid-template-columns: 1fr minmax(150px, 22%);
+  border: 1.4px solid var(--frame); border-radius: 12px; margin-bottom: 18px; overflow: hidden;
+}
+.head .rows { display: grid; min-width: 0; }
+.head .rows > div { height: 34px; padding: 0 16px 6px; display: flex; align-items: flex-end; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.head .rows > div + div { border-top: 1px solid var(--frame); }
+.head .course { font: 700 15px/1 var(--f-display); letter-spacing: .01em; }
+.head .course span { color: var(--ink-soft); font-weight: 500; }
+.head .topic { font: 500 22px/1 var(--f-hand); color: var(--pen); }
+.head .date { border-left: 1.4px solid var(--frame); padding: 8px 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
+.head .date .d { font: 500 22px/1 var(--f-hand); color: var(--ink); }
+.prog { display: flex; align-items: center; gap: 8px; font: 500 12px/1 var(--f-mono); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.prog .bar { flex: 1; height: 4px; border-radius: 4px; background: var(--rule); overflow: hidden; }
+.prog .bar i { display: block; height: 100%; width: 0; background: var(--pen); border-radius: 4px; transition: width .5s var(--ease); }
+
+/* ruled frame */
+.frame {
+  position: relative;
+  border: 1.4px solid var(--frame); border-radius: 12px;
+  padding: 0 var(--u) var(--u);
+  background-image: linear-gradient(to bottom, transparent calc(var(--u) - 1px), var(--rule) calc(var(--u) - 1px));
+  background-size: 100% var(--u);
+}
+.sheet[data-paper="grid"] .frame {
+  background-image:
+    linear-gradient(to bottom, transparent calc(var(--u) - 1px), var(--rule) calc(var(--u) - 1px)),
+    linear-gradient(to right, transparent calc(var(--u) - 1px), var(--rule) calc(var(--u) - 1px));
+  background-size: var(--u) var(--u);
+}
+
+/* ---------- text on the rules ---------- */
+.flow { min-width: 0; position: relative; isolation: isolate; container: flow / inline-size; }
+.flow [data-rl="text"] { position: relative; }
+.flow p, .flow li { margin: 0; max-width: 68ch; }
+.flow ul, .flow ol { margin: 0; padding-left: 1.4em; }
+.flow .rl-h { margin: 0; font: 700 18px/var(--u) var(--f-display); }
+.flow a { color: var(--pen); text-underline-offset: 3px; }
+.flow mark { background: linear-gradient(transparent 38%, var(--hl) 38%, var(--hl) 88%, transparent 88%); color: inherit; padding: 0 .1em; }
+.flow :not(pre) > code { font: 14.5px var(--f-mono); }
+.flow strong { font-weight: 600; }
+
+/* inline math never stretches a line (tall math goes in display blocks; the validator warns) */
+.flow .rl-imath { display: inline-block; height: 0; line-height: 0; vertical-align: baseline; }
+.flow .rl-imath .katex { line-height: normal; }
+.flow .katex { font-size: 1.12em; color: var(--ink); }
+.flow .rl-math { overflow-x: auto; overflow-y: hidden; }
+.flow .rl-math-inner { display: flex; justify-content: center; }
+.flow .rl-math .katex-display { margin: 0; }
+
+.sec-title {
+  margin: var(--u) 0 0; font: 700 31px/calc(var(--u) * 2) var(--f-display); letter-spacing: -.015em; text-wrap: balance;
+}
+.sec-title .num { color: var(--pen); margin-right: .25em; }
+.node > .sec-title:first-child { margin-top: 0; }
+.node .node > .sec-title { font-size: 25px; }
+
+/* nodes (definition, theorem, …) */
+.node { position: relative; margin-top: var(--u); scroll-margin-top: calc(var(--u) * 3); }
+.topic + .topic, .topic-placeholder + .topic, .topic + .topic-placeholder { margin-top: calc(var(--u) * 2); }
+.topic > .node { margin-top: 0; }
+.node::before {
+  content: ""; position: absolute; inset: 0 calc(var(--u) * -.5); z-index: -1; border-radius: 10px;
+  background: var(--learned); opacity: 0; transform: scaleX(.97); transform-origin: left;
+  transition: opacity .4s, transform .5s var(--ease);
+}
+.node.done::before { opacity: 1; transform: none; }
+.node.done .node.done::before { opacity: 0; }
+.node[data-selected]::after {
+  content: ""; position: absolute; top: 4px; bottom: 4px; right: calc(var(--u) * -.5 - 6px); width: 3px; border-radius: 3px;
+  background: var(--pen); opacity: .5;
+}
+.node.flash::before { animation: flash 1.6s var(--ease); }
+@keyframes flash { 0%, 30% { opacity: 1; background: var(--glow); transform: none; } }
+
+.kind { display: block; line-height: var(--u); }
+.kind > * { line-height: 1 !important; }
+.kind b { margin-right: 10px; font: 700 11.5px/1 var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--pen); }
+.kind .title { font: 600 18px/1 var(--f-body); }
+.kind .src { float: right; line-height: var(--u) !important; margin-left: 12px; font: 400 11.5px/1 var(--f-mono); color: var(--ink-soft); white-space: nowrap; }
+.k-exercise > .kind b { color: var(--red); }
+
+/* pencil note in the margin of the page */
+.pencil-note {
+  position: absolute; right: 6px; top: calc(var(--u) * 2); rotate: -4deg; max-width: 140px;
+  font: 700 19px/1.05 var(--f-hand); color: var(--red); text-align: right; pointer-events: none;
+}
+.pencil-note svg { display: block; margin: 2px 40px 0 auto; }
+/* the note lives in the room the 68ch text column leaves on the right; without that room it would cover text */
+@container flow (max-width: 760px) { .pencil-note { display: none; } }
+
+/* ---------- margin checklist ---------- */
+.margin-layer { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.check {
+  position: absolute; width: var(--cb); height: var(--cb); margin-left: calc(var(--cb) / -2);
+  border: 1.6px solid var(--ink-soft); border-radius: 4px; background: var(--paper);
+  cursor: pointer; padding: 0; display: grid; place-items: center; pointer-events: auto;
+  transition: border-color .2s, background .2s, transform .15s;
+}
+.check:hover { border-color: var(--learned-ink); transform: scale(1.08); }
+.check:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
+.check svg { width: 100%; height: 100%; overflow: visible; }
+.check path { fill: none; stroke: var(--paper); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 30; stroke-dashoffset: 30; transition: stroke-dashoffset .35s ease-out; }
+.check[data-state="on"] { background: var(--learned-ink); border-color: var(--learned-ink); }
+.check[data-state="on"] .tick { stroke-dashoffset: 0; }
+.check[data-state="partial"] { border-color: var(--learned-ink); }
+.check[data-state="partial"] .dash { stroke: var(--learned-ink); stroke-dashoffset: 0; }
+.bracket {
+  position: absolute; width: 4px; margin-left: -2px; border-radius: 4px; background: var(--learned-ink);
+  transform-origin: top; transform: scaleY(0); opacity: .55; transition: transform .5s var(--ease);
+}
+.bracket.on { transform: scaleY(1); }
+
+/* ---------- taped cards & snapped blocks ---------- */
+.rl-snap { position: relative; }
+.rl-snap-inner { width: 100%; }
+.card {
+  position: relative; background: var(--card); border-radius: 4px; padding: 14px 14px 12px;
+  box-shadow: 0 1px 2px var(--shadow), 0 10px 22px -12px var(--shadow);
+}
+.card::before, .card::after {
+  content: ""; position: absolute; top: -9px; width: 64px; height: 20px; background: var(--tape);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .05); z-index: 1;
+}
+.card::before { left: 18px; rotate: -4deg; }
+.card::after { right: 18px; rotate: 3deg; }
+.blk.has-card { margin-top: var(--u); }
+.blk-col > .blk.has-card:first-child { margin-top: 0; }
+/* solid surfaces (code, tables, diagrams): a line above, half a line of air below inside the snapped height */
+.blk.has-surface { margin-top: var(--u); }
+.blk-col > .blk.has-surface:first-child { margin-top: 0; }
+.blk.has-surface > .rl-snap-inner { padding-bottom: calc(var(--u) / 2); }
+.blk.has-surface figure { margin: 0; }
+.blk.has-surface figcaption { margin-top: 8px; font: 500 12px/1.4 var(--f-mono); color: var(--ink-soft); }
+.blk-graph, .blk-figure { margin: 0; }
+.blk-graph figcaption, .blk-figure figcaption { margin-top: 8px; font: 500 12px/1.4 var(--f-mono); color: var(--ink-soft); }
+.blk-figure img { display: block; max-width: 100%; margin: 0 auto; border-radius: 2px; object-fit: contain; }
+.block-error {
+  font: 500 13px/1.5 var(--f-mono); color: var(--red); background: color-mix(in srgb, var(--red) 8%, transparent);
+  border-left: 3px solid var(--red); padding: 6px 10px; border-radius: 4px;
+}
+.block-loading { height: var(--u); }
+
+@media (max-width: 720px) {
+  .desk-page { font-size: 16px; padding: 4px 10px 40px; }
+  .sheet { padding: 22px 14px 28px var(--margin); }
+  .binder { display: none; }
+  .frame { padding-inline: 14px; }
+  .pencil-note { display: none; }
+  .head { grid-template-columns: 1fr; }
+  .head .date { border-left: 0; border-top: 1px solid var(--frame); flex-direction: row; align-items: center; }
+  .head .date .prog { flex: 1; }
+  .sec-title { font-size: 23px; line-height: var(--u); }
+  .node .node > .sec-title { font-size: 20px; }
+  .head .rows > div { height: auto; min-height: 34px; padding-block: 8px 6px; white-space: normal; }
+  .head .topic { line-height: 1.15; }
+  .kind .src { float: none; display: block; margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .sheet, .node::before, .bracket, .check path { animation: none !important; transition: none !important; } }
+
+/* ---------- overview (bird's-eye view) ---------- */
+.overview { max-width: 1040px; margin: 0 auto 26px; }
+.ov-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.ov-toggle {
+  display: inline-grid; place-items: center; align-self: stretch; width: 46px; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--paper); color: var(--ink-soft); box-shadow: 0 1px 3px var(--shadow); transition: color .2s, transform .2s var(--ease);
+}
+.ov-toggle:hover { color: var(--ink); transform: scale(1.06); }
+.ov-stage { position: relative; height: 300px; }
+.ov-view { position: absolute; inset: 0; }
+.ov-empty { display: grid; place-items: center; height: 100%; font: 500 22px/1.2 var(--f-hand); color: var(--ink-soft); }
+
+.tm { position: relative; width: 100%; height: 100%; }
+.tm-cell {
+  position: absolute; border: 0; padding: 0; cursor: pointer; overflow: hidden; text-align: left;
+  border-radius: 8px; background: var(--paper); box-shadow: 0 1px 2px var(--shadow);
+  transition: box-shadow .25s, filter .25s;
+}
+.tm-cell:hover { box-shadow: 0 0 0 2px var(--pen), 0 8px 20px -10px var(--shadow); z-index: 2; }
+.tm-topic { background: transparent; box-shadow: none; border-radius: 10px; }
+.tm-topic:hover { box-shadow: inset 0 0 0 1.5px var(--frame); }
+.tm-topic .tm-label { font: 700 13px/26px var(--f-display); padding: 0 4px; color: var(--ink); }
+.tm-topic .tm-pct { position: absolute; top: 0; right: 4px; font: 500 11px/26px var(--f-mono); color: var(--ink-soft); }
+.tm-fill { position: absolute; inset: auto 0 0 0; height: calc(var(--p) * 100%); background: var(--learned-ink); opacity: .22; transition: height .6s var(--ease); }
+.tm-cell[data-status="done"] .tm-fill { opacity: .32; }
+.tm-label { position: relative; display: block; padding: 7px 9px; font: 500 12.5px/1.25 var(--f-body); color: var(--ink); overflow: hidden; text-overflow: ellipsis; }
+.tm-label i { font-style: normal; color: var(--pen); margin-right: 5px; font-family: var(--f-mono); }
+
+.ov-tree { height: 100%; overflow: auto; background: var(--paper); border-radius: 12px; box-shadow: 0 1px 3px var(--shadow); }
+.tr-link { fill: none; stroke: var(--rule); stroke-width: 1.4; }
+.tr-node { cursor: pointer; }
+.tr-node circle { fill: var(--paper); stroke: var(--ink-soft); stroke-width: 1.6; transition: fill .3s; }
+.tr-node[data-status="done"] circle { fill: var(--learned-ink); stroke: var(--learned-ink); }
+.tr-node[data-status="partial"] circle { stroke: var(--learned-ink); }
+.tr-node text { font: 500 12.5px var(--f-body); fill: var(--ink); }
+.tr-node:hover text { fill: var(--pen); }
+.tr-glyph { fill: var(--pen); font-family: var(--f-mono); }
+
+.dg { height: 100%; border-radius: 12px; overflow: hidden; background: var(--paper); box-shadow: 0 1px 3px var(--shadow); }
+.dg .react-flow__node.dg-node {
+  font: 500 12.5px/1.3 var(--f-body); color: var(--ink); background: var(--card); border: 1.4px solid var(--frame);
+  border-radius: 8px; padding: 8px 12px; width: 190px; box-shadow: 0 6px 16px -10px var(--shadow);
+}
+.dg .react-flow__node.s-done { border-color: var(--learned-ink); background: color-mix(in srgb, var(--learned-ink) 12%, var(--card)); }
+.dg .react-flow__node.s-partial { border-color: var(--learned-ink); }
+.dg .react-flow__edge-path { stroke: var(--ink-soft); stroke-width: 1.4; }
+.dg .react-flow__background { color: var(--rule); }
+.dg .react-flow__edge-text { font: 500 11px var(--f-mono); fill: var(--ink-soft); }
+.dg .react-flow__edge-textbg { fill: var(--paper); }
