@@ -2,34 +2,14 @@
    Every text line sits on a ruled line (unit --u); see core/ruler. Ported from prototypes/notebook-page. */
 
 .desk-page {
-  padding: 8px 16px 72px;
+  padding: 8px var(--desk-gutter) 72px;
   font: 17px/var(--u) var(--f-body);
   color: var(--ink);
 }
 
-/* ---------- desk toolbar ---------- */
-.desk-bar { max-width: 1040px; margin: 0 auto 18px; display: flex; justify-content: flex-end; gap: 12px; align-items: center; }
-.paper-switch { display: inline-flex; background: var(--paper); border-radius: 999px; padding: 4px; box-shadow: 0 1px 3px var(--shadow); }
-.paper-switch button {
-  font: 500 13px/1 var(--f-display); letter-spacing: .02em; color: var(--ink-soft);
-  border: 0; background: none; padding: 9px 14px 9px 34px; border-radius: 999px; cursor: pointer; position: relative;
-  transition: color .2s, background .2s;
-}
-.paper-switch button::before {
-  content: ""; position: absolute; left: 12px; top: 50%; width: 15px; height: 15px; translate: 0 -50%;
-  border: 1.2px solid currentColor; border-radius: 3px; opacity: .8;
-}
-.paper-switch button[data-paper="ruled"]::before { background: repeating-linear-gradient(to bottom, transparent 0 3px, currentColor 3px 4px); }
-.paper-switch button[data-paper="grid"]::before {
-  background: repeating-linear-gradient(to bottom, transparent 0 3px, currentColor 3px 4px),
-              repeating-linear-gradient(to right, transparent 0 3px, currentColor 3px 4px);
-}
-.paper-switch button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
-.paper-switch button:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
-
 /* ---------- the sheet ---------- */
 .sheet {
-  position: relative; max-width: 1040px; margin: 0 auto;
+  position: relative; max-width: var(--notebook-width); margin: 0 auto;
   background: var(--paper);
   padding: 34px 40px 48px var(--margin);
   border-radius: 3px 6px 6px 3px;
@@ -102,8 +82,8 @@
   margin: var(--u) 0 0; font: 700 31px/calc(var(--u) * 2) var(--f-display); letter-spacing: -.015em; text-wrap: balance;
 }
 .sec-title .num { color: var(--pen); margin-right: .25em; }
-.node > .sec-title:first-child { margin-top: 0; }
-.node .node > .sec-title { font-size: 25px; }
+.node > .sec-title:first-child, .node-heading > .sec-title:first-child { margin-top: 0; }
+.node .node > .sec-title, .node .node > .node-intro > .node-heading > .sec-title { font-size: 25px; }
 
 /* nodes (definition, theorem, …) */
 .node { position: relative; margin-top: var(--u); scroll-margin-top: calc(var(--u) * 3); }
@@ -128,16 +108,19 @@
 .kind b { margin-right: 10px; font: 700 11.5px/1 var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--pen); }
 .kind .title { font: 600 18px/1 var(--f-body); }
 .kind .src { float: right; line-height: var(--u) !important; margin-left: 12px; font: 400 11.5px/1 var(--f-mono); color: var(--ink-soft); white-space: nowrap; }
-.k-exercise > .kind b { color: var(--red); }
+.k-exercise > .kind b, .k-exercise > .node-intro > .node-heading > .kind b { color: var(--red); }
 
-/* pencil note in the margin of the page */
-.pencil-note {
-  position: absolute; right: 6px; top: calc(var(--u) * 2); rotate: -4deg; max-width: 140px;
-  font: 700 19px/1.05 var(--f-hand); color: var(--red); text-align: right; pointer-events: none;
+/* Notes share the heading's row only when both intrinsic widths fit.
+   Wrapping reserves another row; the body always keeps the entire writing width. */
+.node-intro {
+  display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: var(--u);
 }
-.pencil-note svg { display: block; margin: 2px 40px 0 auto; }
-/* the note lives in the room the 68ch text column leaves on the right; without that room it would cover text */
-@container flow (max-width: 760px) { .pencil-note { display: none; } }
+.node-heading { display: flow-root; flex: 1 1 max-content; min-width: 0; max-width: 100%; }
+.pencil-note {
+  position: relative; flex: 0 1 auto; min-width: 0; max-width: min(100%, var(--pencil-note-width)); margin-left: auto;
+  font: 700 var(--pencil-note-font-size)/var(--u) var(--f-hand); color: var(--red); text-align: right;
+  overflow-wrap: anywhere;
+}
 
 /* ---------- margin checklist ---------- */
 .margin-layer { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
@@ -196,12 +179,11 @@
   .sheet { padding: 22px 14px 28px var(--margin); }
   .binder { display: none; }
   .frame { padding-inline: 14px; }
-  .pencil-note { display: none; }
   .head { grid-template-columns: 1fr; }
   .head .date { border-left: 0; border-top: 1px solid var(--frame); flex-direction: row; align-items: center; }
   .head .date .prog { flex: 1; }
   .sec-title { font-size: 23px; line-height: var(--u); }
-  .node .node > .sec-title { font-size: 20px; }
+  .node .node > .sec-title, .node .node > .node-intro > .node-heading > .sec-title { font-size: 20px; }
   .head .rows > div { height: auto; min-height: 34px; padding-block: 8px 6px; white-space: normal; }
   .head .topic { line-height: 1.15; }
   .kind .src { float: none; display: block; margin-left: 0; }
@@ -209,7 +191,7 @@
 @media (prefers-reduced-motion: reduce) { .sheet, .node::before, .bracket, .check path { animation: none !important; transition: none !important; } }
 
 /* ---------- overview (bird's-eye view) ---------- */
-.overview { max-width: 1040px; margin: 0 auto 26px; }
+.overview { max-width: var(--notebook-width); margin: 0 auto 26px; }
 .ov-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .ov-toggle {
   display: inline-grid; place-items: center; align-self: stretch; width: 46px; border: 0; border-radius: 999px; cursor: pointer;
@@ -257,3 +239,9 @@
 .dg .react-flow__background { color: var(--rule); }
 .dg .react-flow__edge-text { font: 500 11px var(--f-mono); fill: var(--ink-soft); }
 .dg .react-flow__edge-textbg { fill: var(--paper); }
+
+/* Things you manipulate aren't text: dragging a slider, a plot or a 3D view never starts a text selection. */
+.flow [data-interactive], .flow [data-interactive] *, .flow button, .flow [role="tab"], .margin-layer {
+  -webkit-user-select: none; user-select: none;
+}
+.flow [data-interactive] :is(input, textarea, [contenteditable]) { -webkit-user-select: text; user-select: text; }

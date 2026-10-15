@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { layoutGraph, type GraphLayout, type LayoutOptions } from "./layout";
+import { layoutForWidth, layoutGraph, type GraphLayout, type LayoutOptions } from "./layout";
 import { focusSets, hasCycle } from "./focus";
 import { parseMermaid } from "./mermaid";
 import type { Direction, GraphSpec } from "./types";
@@ -24,7 +24,38 @@ const parse = (code: string): GraphSpec => {
   return spec!;
 };
 
+describe("responsive diagrams", () => {
+  it("fits a branching tree by reducing empty space without shrinking its nodes", () => {
+    const spec = parse("flowchart LR\n O((Start)) --> A[Left branch]\n O --> B[Right branch]\n A -->|1/2| C([C])\n A -->|1/2| D([D])\n B -->|1/2| E([E])\n B -->|1/2| F([F])");
+    const normal = layoutGraph({ ...spec, direction: "TB" }, { measure });
+    const narrow = layoutForWidth(spec, { measure }, 338);
+    expect(narrow.direction).toBe("TB");
+    expect(narrow.width * .85).toBeLessThanOrEqual(338);
+    expect(narrow.nodes.map(n => [n.id, n.w, n.h])).toEqual(normal.nodes.map(n => [n.id, n.w, n.h]));
+    expect(narrow.edges).toHaveLength(spec.edges.length);
+  });
+  it("reflows a long chain without changing any node or edge", () => {
+    const spec = parse("flowchart LR\n A[First] --> B[Second] --> C[Third] --> D[Fourth]");
+    const wide = layoutForWidth(spec, { measure }, 1200);
+    const narrow = layoutForWidth(spec, { measure }, 220);
+    expect(wide.direction).toBe("LR");
+    expect(narrow.direction).toBe("TB");
+    expect(narrow.width * .85).toBeLessThanOrEqual(220);
+    expect(narrow.nodes.map(n => n.id)).toEqual(wide.nodes.map(n => n.id));
+    expect(narrow.edges.map(e => [e.from, e.to])).toEqual(wide.edges.map(e => [e.from, e.to]));
+  });
+});
+
 describe("parseMermaid", () => {
+  it("preserves TeX and inequalities in quoted labels", () => {
+    const graph = parse(String.raw`flowchart LR
+      A["$F_X^{-1}(u)$"] -->|"$P(X<y)$"| B["plain code_name"]`);
+    expect(graph.nodes[0]!.label).toBe(String.raw`$F_X^{-1}(u)$`);
+    expect(graph.edges[0]!.label).toBe("$P(X<y)$");
+  });
+  it("uses the complete Mermaid fallback for self-loops", () => {
+    expect(parseMermaid('flowchart LR\n A[A] -->|"$p$"| A')).toBeNull();
+  });
   it("reads a flow network", () => {
     const g = parse(NETWORK);
     expect(g.direction).toBe("LR");
@@ -53,6 +84,15 @@ describe("parseMermaid", () => {
     expect(g.edges).toEqual([{ from: "A", to: "B" }, { from: "B", to: "C", arrow: false }]);
   });
 
+  it("keeps conditional-probability bars inside quoted edge labels", () => {
+    const g = parse('flowchart LR\n O((Ω)) -->|"P(B₁)"| B1[B₁]\n B1 -->|"P(A|B₁)"| A1([A])');
+    expect(g.edges).toEqual([
+      { from: "O", to: "B1", label: "P(B₁)" },
+      { from: "B1", to: "A1", label: "P(A|B₁)" },
+    ]);
+    expect(parseMermaid('flowchart LR\n A -->|"P(A|B)| B')).toBeNull();
+  });
+
   it("reads state diagrams with start/end pseudo-states", () => {
     const g = parse(`stateDiagram-v2
       direction LR
@@ -73,6 +113,15 @@ describe("parseMermaid", () => {
     expect(parseMermaid("flowchart LR\n A[(db)] --> B")).toBeNull();
     expect(parseMermaid("stateDiagram-v2\n state X {\n A --> B\n }")).toBeNull();
   });
+});
+
+it("reserves measured formula heights for nodes and edge labels", () => {
+  const spec = parse('flowchart LR\n A["$a/b$\\n$F_X$"] -->|"$p$"| B[B]');
+  const normal = layoutGraph(spec, { measure });
+  const tall = layoutGraph(spec, { measure, measureHeight: (_text, kind) => kind === "node" ? 40 : 32 });
+  expect(tall.nodes[0]!.h).toBeGreaterThan(normal.nodes[0]!.h);
+  expect(tall.edges[0]!.label!.h).toBeGreaterThan(normal.edges[0]!.label!.h);
+  expect(tall.nodes[0]!.lineHeights.every(height => height === 40)).toBe(true);
 });
 
 type P = [number, number];

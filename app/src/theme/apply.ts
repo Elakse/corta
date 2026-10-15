@@ -1,4 +1,4 @@
-import { colorTokens, dark, fonts, light, metrics, motionTokens, radii, type Palette } from "./tokens";
+import { colorTokens, dark, fonts, light, markerInk, metrics, motionTokens, radii, type Palette } from "./tokens";
 
 const block = (p: Palette) => colorTokens.map((k) => `--${k}: ${p[k]};`).join(" ");
 
@@ -8,11 +8,15 @@ export function tokensToCss(): string {
     block(light),
     ...Object.entries(fonts).map(([k, v]) => `--f-${k}: ${v};`),
     `--u: ${metrics.u}px; --margin: ${metrics.margin}px; --cb: ${metrics.checkbox}px; --sink: ${metrics.sink}px;`,
+    `--pencil-note-width: ${metrics.pencilNote.width}px; --pencil-note-font-size: ${metrics.pencilNote.fontSize}px;`,
     `--ease: ${motionTokens.easeCss};`,
+    `--chat-width: ${metrics.chatWidth}; --chat-dock-height: ${metrics.chatDockHeight};`,
+    `--notebook-width: ${metrics.notebookWidth}px; --desk-gutter: ${metrics.deskGutter}px; --chat-gap: ${metrics.chatGap}px; --chat-inset: ${metrics.chatInset}px;`,
     ...Object.entries(radii).map(([k, v]) => `--r-${k}: ${v}px;`),
+    `--marker-blend: ${markerInk.light.blend}; --marker-edge: ${markerInk.light.edge}; --marker: var(--marker-yellow);`,
     "color-scheme: light;",
   ].join(" ");
-  const d = `${block(dark)} color-scheme: dark;`;
+  const d = `${block(dark)} --marker-blend: ${markerInk.dark.blend}; --marker-edge: ${markerInk.dark.edge}; color-scheme: dark;`;
   const ph = metrics.phone;
   return [
     `:root { ${base} }`,

@@ -1,6 +1,6 @@
 /** Typed client for the Corta API (shared/api.ts is the contract). */
 import type {
-  ChatRequest, ChatStreamEvent, GcalStatus, LlmConfiguration, LlmSelection, LlmStatus, ProgressChange, ProgressState, StudySession, StudySessionInput, SyncRequest, SyncResult,
+  ChatRequest, ChatStreamEvent, GcalStatus, LlmConfiguration, LlmSelection, LlmStatus, ProgressChange, ProgressState, SourceHit, SourcePage, StudySession, StudySessionInput, SyncRequest, SyncResult,
 } from "@shared/api";
 
 export class ApiError extends Error {
@@ -29,6 +29,8 @@ async function call<T>(path: string, init?: RequestInit & { json?: unknown }): P
   return (await res.json()) as T;
 }
 
+const coursePath = (courseKey: string) => courseKey.split("/").map(encodeURIComponent).join("/");
+
 export const api = {
   health: () => call<{ ok: boolean }>("/health"),
   progress: {
@@ -50,6 +52,14 @@ export const api = {
     sync: (r: SyncRequest) => call<SyncResult>("/gcal/sync", { method: "POST", json: r }),
     disconnect: () => call<{ ok: true }>("/gcal/disconnect", { method: "POST" }),
     authUrl: "/api/gcal/auth",
+  },
+  /** A course's original material; `courseKey` is "<semester>/<course>". */
+  sources: {
+    search: (courseKey: string, q: string, refs: string[] = []) =>
+      call<{ hits: SourceHit[]; searched: number }>(`/sources/${coursePath(courseKey)}/search?${new URLSearchParams({ q, ...(refs.length ? { refs: refs.join(",") } : {}) })}`),
+    page: (courseKey: string, ref: string, page: number) => call<SourcePage>(`/sources/${coursePath(courseKey)}/${encodeURIComponent(ref)}/pages/${page}`),
+    /** Opens in the browser's viewer; PDFs jump to `page`. */
+    fileUrl: (courseKey: string, ref: string, page?: number) => `/api/sources/${coursePath(courseKey)}/${encodeURIComponent(ref)}/file${page ? `#page=${page}` : ""}`,
   },
   llm: {
     configuration: () => call<LlmConfiguration>("/llm/configuration"),

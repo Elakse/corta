@@ -4,6 +4,9 @@ import type { ReactNode } from "react";
 import type { ColorToken } from "@/theme";
 import { motionTokens } from "@/theme";
 import { usePlane, type Vec2 } from "./Plane";
+import { curvePath } from "./paths";
+import { hasLabelMath } from "@/core/markup/labels";
+import { SvgMathLabel } from "@/ui/MathText";
 
 type Color = ColorToken | (string & {});
 const col = (c: Color | undefined, fallback: ColorToken, t: Record<string, unknown>) => (c && c in t ? (t[c] as string) : c) ?? (t[fallback] as string);
@@ -71,8 +74,10 @@ export function Point({ at, color, r = 5, ring }: { at: Vec2; color?: Color; r?:
 export function Label({ at, children, color, hand, size, dx = 6, dy = -6 }: { at: Vec2; children: ReactNode; color?: Color; hand?: boolean; size?: number; dx?: number; dy?: number }) {
   const { toPx, tokens } = usePlane();
   const [x, y] = toPx(at);
+  const font = hand ? `700 ${size ?? 19}px ${tokens.font.hand}` : `500 ${size ?? 11}px ${tokens.font.mono}`;
+  if (typeof children === "string" && hasLabelMath(children)) return <SvgMathLabel text={children} x={x + dx} y={y + dy} font={font} color={col(color, "ink-soft", tokens)} />;
   return (
-    <text x={x + dx} y={y + dy} fill={col(color, "ink-soft", tokens)} style={{ font: hand ? `700 ${size ?? 19}px ${tokens.font.hand}` : `500 ${size ?? 11}px ${tokens.font.mono}` }}>
+    <text x={x + dx} y={y + dy} fill={col(color, "ink-soft", tokens)} style={{ font }}>
       {children}
     </text>
   );
@@ -80,20 +85,8 @@ export function Label({ at, children, color, hand, size, dx = 6, dy = -6 }: { at
 
 /** y = f(x) sampled across the view. */
 export function Curve({ f, color, width = 2.2, samples = 240, dashed }: { f: (x: number) => number; color?: Color; width?: number; samples?: number; dashed?: boolean }) {
-  const { view, toPx, tokens } = usePlane();
-  let d = "";
-  let pen = false;
-  for (let i = 0; i <= samples; i++) {
-    const x = view.x[0] + ((view.x[1] - view.x[0]) * i) / samples;
-    const y = f(x);
-    if (!Number.isFinite(y) || Math.abs(y) > 1e6) {
-      pen = false;
-      continue;
-    }
-    const [px, py] = toPx([x, y]);
-    d += `${pen ? "L" : "M"}${px.toFixed(1)} ${py.toFixed(1)} `;
-    pen = true;
-  }
+  const { view, toPx, tokens, width: plotWidth } = usePlane();
+  const d = curvePath(x => { const y = f(x); return Math.abs(y) > 1e6 ? NaN : y; }, view.x, toPx, { samples: Math.max(samples, Math.ceil(plotWidth * 2)) });
   return <path d={d} fill="none" stroke={col(color, "pen", tokens)} strokeWidth={width} strokeDasharray={dashed ? "5 6" : undefined} strokeLinejoin="round" />;
 }
 

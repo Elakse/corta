@@ -54,14 +54,22 @@ export type SyncResult = z.infer<typeof SyncResult>;
 export const GcalStatus = z.object({ configured: z.boolean(), connected: z.boolean(), calendarId: z.string().nullable(), lastSync: z.string().nullable() });
 export type GcalStatus = z.infer<typeof GcalStatus>;
 
+/** Images the tutor can look at (a photo of the sheet on the desk, a pasted screenshot…). */
+export const CHAT_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+export const MAX_CHAT_IMAGES = 3;
+/** Base64 cap per image. The app downsizes to ~1600px JPEG (a few hundred KB), far below this. */
+export const MAX_CHAT_IMAGE_BASE64 = 6_000_000;
+
 /** LLM chat (provider-agnostic). Tools come from the app's action registry. */
 export const ChatContentBlock = z.union([
   z.object({ type: z.literal("text"), text: z.string() }),
+  z.object({ type: z.literal("image"), mediaType: z.enum(CHAT_IMAGE_TYPES), /** base64, no `data:` prefix */ data: z.string().min(1).max(MAX_CHAT_IMAGE_BASE64) }),
   z.object({ type: z.literal("tool_use"), id: z.string(), name: z.string(), input: z.unknown() }),
   z.object({ type: z.literal("tool_result"), tool_use_id: z.string(), content: z.string(), is_error: z.boolean().optional() }),
 ]);
 export type ChatContentBlock = z.infer<typeof ChatContentBlock>;
-export const ChatMessage = z.object({ role: z.enum(["user", "assistant"]), content: z.union([z.string(), z.array(ChatContentBlock)]) });
+export const ChatMessage = z.object({ role: z.enum(["user", "assistant"]), content: z.union([z.string(), z.array(ChatContentBlock)]) })
+  .refine((m) => typeof m.content === "string" || m.content.filter((b) => b.type === "image").length <= MAX_CHAT_IMAGES, { message: `at most ${MAX_CHAT_IMAGES} images per message` });
 export type ChatMessage = z.infer<typeof ChatMessage>;
 export const ChatTool = z.object({ name: z.string(), description: z.string(), input_schema: z.record(z.string(), z.unknown()) });
 export type ChatTool = z.infer<typeof ChatTool>;
@@ -77,9 +85,30 @@ export interface LlmConfiguration {
   providers: { id: string; label: string; configured: boolean; defaultModel: string; models: string[] }[];
 }
 
+/** Machine-readable reasons the app can explain in its own language (everything else shows `message`). */
+export type ChatErrorCode = "images_unsupported";
+
 /** Server-sent events of a chat stream. */
 export type ChatStreamEvent =
   | { type: "text"; text: string }
   | { type: "tool_use"; id: string; name: string; input: unknown }
   | { type: "done"; stopReason: string | null }
-  | { type: "error"; message: string };
+  | { type: "error"; message: string; code?: ChatErrorCode };
+
+/** Course source material (read-only): search hits and extracted pages, for tracing content back to its origin. */
+export interface SourceHit {
+  ref: string;
+  title: string;
+  short: string;
+  page: number;
+  score: number;
+  excerpt: string;
+}
+export interface SourcePage {
+  ref: string;
+  title: string;
+  short: string;
+  page: number;
+  pages: number;
+  text: string;
+}

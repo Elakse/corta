@@ -48,6 +48,7 @@ export default defineBlock<Graph2DProps>({
   type: "graph2d",
   version: 1,
   group: "visual",
+  interactive: true,
   schema: Graph2DSchema as unknown as z.ZodType<Graph2DProps>,
   component: lazy(() => import("./View")),
   ruler: "snap",
@@ -55,6 +56,7 @@ export default defineBlock<Graph2DProps>({
   reads: (p) => [...new Set(nums(p))],
   writes: (p) => p.points.flatMap((pt) => [pt.drag?.x, pt.drag?.y].filter((v): v is string => !!v)),
   markup: (p) => (p.caption ? [p.caption] : []),
+  labels: (p) => [...p.vectors, ...p.points].flatMap(item => item.label ? [item.label] : []),
   size: () => 1,
   describe: (p) =>
     `[2D graph${p.plots.length ? `; y = ${p.plots.map((x) => x.fn).join(", ")}` : ""}${p.vectors.length ? `; vectors to ${p.vectors.map((v) => `(${v.to.join(", ")})`).join(", ")}` : ""}${p.points.length ? `; ${p.points.length} point(s)` : ""}]`,
@@ -62,7 +64,8 @@ export default defineBlock<Graph2DProps>({
 variables (e.g. \`"k * sin(x)"\`, \`["cos(theta)", "sin(theta)"]\`); the graph redraws when variables change.
 \`plots\` are y = f(x) with \`fn\` an expression in x; \`parametric\` takes x(t), y(t); \`vectors\`, \`segments\`, \`points\`.
 A point with \`drag: { x: a, y: b }\` is draggable and writes those variables. Colors are token names
-(pen, red, learned-ink, ink-soft, ev-…). \`height\` in ruled lines.`,
+(pen, red, learned-ink, ink-soft, ev-…). \`height\` in ruled lines. Point/vector labels accept \`$TeX$\`
+for mathematical notation; coordinate/function expressions remain executable expressions without delimiters.`,
   example: `- graph2d:
     view: { x: [-3, 3], y: [-2, 2] }
     plots: [ { fn: "k * sin(x)" } ]

@@ -9,10 +9,12 @@
 .gv-edge .hit { fill: none; stroke: transparent; stroke-width: 16; cursor: pointer; }
 .gv-edge .chip rect { fill: var(--card); stroke: var(--line); stroke-width: 1; }
 .gv-edge .chip text { font: 500 11.5px var(--f-mono); fill: var(--ink-soft); text-anchor: middle; transition: fill .2s; }
+.gv-edge .chip-label { color: var(--ink-soft); transition: color .2s; }
 .edge-dashed .line { stroke-dasharray: 6 6; }
 .edge-strong { --edge: var(--pen); }
 .edge-strong .line { stroke-width: 2.8; opacity: 1; }
 .edge-strong .chip text { fill: var(--pen); }
+.edge-strong .chip-label { color: var(--pen); }
 .edge-muted .line { stroke-dasharray: 3 6; opacity: .45; }
 .edge-muted .arrow, .edge-muted .chip { opacity: .55; }
 
@@ -20,6 +22,7 @@
 .gv-node { cursor: pointer; outline: none; transition: opacity .25s; transform-box: fill-box; transform-origin: center; }
 .gv-node .shape { fill: var(--paper); stroke: var(--frame); stroke-width: 1.6; stroke-linejoin: round; transition: stroke .2s, fill .2s, filter .2s; }
 .gv-node .lbl { font: 600 14px var(--f-display); fill: var(--ink); text-anchor: middle; pointer-events: none; }
+.gv-node .svg-math-label.lbl { color: var(--ink); }
 .gv-node.filled .shape { fill: var(--ink); stroke: var(--ink); }
 .gv-node.ring .shape { fill: var(--paper); stroke: var(--ink); stroke-width: 1.8; }
 .gv-node .deco { fill: var(--ink); stroke: none; }
@@ -29,12 +32,14 @@
 .gv-node:hover .shape, .gv-node:focus-visible .shape { stroke: var(--pen); filter: drop-shadow(0 0 7px var(--glow)); }
 .gv-node.filled:hover .shape { stroke: var(--pen); fill: var(--pen); }
 
-/* focus: everything not on the path fades back */
-.is-focus .gv-node, .is-focus .gv-edge { opacity: .16; }
+/* Focus fades the unselected connections, keeping every label readable. */
+.is-focus .gv-node:not(.on) .shape { stroke: var(--line); }
+.is-focus .gv-edge:not(.on) .line, .is-focus .gv-edge:not(.on) .arrow { opacity: .3; }
 .is-focus .gv-node.on, .is-focus .gv-edge.on { opacity: 1; }
 .is-focus .gv-edge.on .line { stroke: var(--pen); opacity: 1; stroke-width: 2.4; }
 .is-focus .gv-edge.on .arrow { fill: var(--pen); opacity: 1; }
 .is-focus .gv-edge.on .chip text { fill: var(--pen); }
+.is-focus .gv-edge.on .chip-label { color: var(--pen); }
 .is-focus .gv-node.on .shape { stroke: var(--pen); }
 
 /* entrance: nodes fade in layer by layer, solid lines draw themselves, the rest fades in */

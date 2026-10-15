@@ -48,6 +48,11 @@ export interface BlockDef<P = any> {
    * "snap" = the renderer wraps it and rounds its height up to whole lines.
    */
   ruler: "self" | "snap";
+  /**
+   * The reader manipulates it (drags, sliders, 3D orbit, inputs): its text can't be selected, so a drag never
+   * turns into a text selection, and the selection menu ignores it.
+   */
+  interactive?: boolean;
   /** draw it as a taped card (only for snapped blocks) */
   card?: boolean;
   /** the block draws its own solid `Surface` card: the renderer only adds the spacing around it (snapped blocks) */
@@ -56,6 +61,8 @@ export interface BlockDef<P = any> {
   children?: (props: P) => unknown[][];
   /** inline-markup strings the block renders (validated for the tall-math rule and {{var}} placeholders) */
   markup?: (props: P) => string[];
+  /** Math-capable labels outside ruled prose: syntax is validated; the view measures their height. */
+  labels?: (props: P) => string[];
   /** relative content size of the block itself (default 1); feeds derived weights */
   size?: (props: P) => number;
 }

@@ -8,11 +8,11 @@
    `headers(req)` / `parameters(model)` for provider-specific protocol requirements.
 4. Add the credential and per-provider default model to `server/src/env.ts` and `.env.example`.
    `providerModel(id, override, fallback)` keeps the legacy global override scoped to its default provider.
-5. Register the profile in `providers/index.ts`. The panel discovers it automatically; no UI edits needed.
+5. Register the profile in `providers/index.ts`. Settings discovers it automatically; no UI edits needed.
 6. Test streaming, cancellation, tool calls/results and provider failures using mocked network responses.
    Check that it never falls back to a different endpoint and never returns credentials in configuration.
 7. Update the setup guide, docs index, decision log and AGENTS status.
 
 The browser supplies only a registered provider ID and model ID, never credentials or arbitrary endpoints.
-Models entered in the panel must support the chosen adapter's protocol. Saved choices live in
+Models entered in Settings must support the chosen adapter's protocol. Saved choices live in
 `llm.configuration`; keys remain in `.env`. Transport retries/fallbacks must not introduce extra charges.

@@ -54,6 +54,10 @@ Every line of text must sit on a rule. Pick one:
 Read/write page variables with `useVar(name)`, `useVarValues(names)`, `useSetVar()` from `core/vars`, and declare
 them in `reads`/`writes`. Use theme tokens for every color (`useTokens()` or `var(--token)`); never hardcode.
 
+If the reader manipulates the block (drag, slider, orbit, typing), set `interactive: true` in the definition.
+The renderer marks it `data-interactive`: its text can't be selected (a drag never becomes a text selection;
+inputs inside stay editable) and the selection menu ignores it.
+
 ## 5. Finish
 
 ```powershell
@@ -71,3 +75,18 @@ The module default-exports a component receiving `CanvasModuleProps` (`app/src/b
 `{ vars, setVar, tokens, kit, width, height, props }`. Build with the graphics kit (`kit.Plane`, `Grid`, `Axes`,
 `Vector`, `Point`, `Label`, `Segment`, `Curve`, `Shape`, `Transition`), see the sample `eigen-demo.tsx`.
 If the same canvas idea shows up three times, promote it to a real block.
+
+Canvas `height` is a preferred size, not an overflow clip: a module can grow when its controls wrap.
+Measure the control/caption rows with `ResizeObserver`, then give each drawing a usable minimum height.
+Check the actual **card width**, including narrow columns, rather than only the viewport breakpoint.
+Keep every SVG label within the SVG bounds, wrap long annotations at measured font widths, and put
+long explanations below the plot. Stagger dense axis labels rather than dropping values.
+`Plane` captures drags on the SVG itself so replaced scene marks do not interrupt the gesture.
+
+For continuous drawings use `curvePath` / `areaPath` from `@/graphics-kit`: sampling follows the
+screen resolution, and explicit `breaks` preserve genuine corners/jumps. Fill under the actual path,
+not a stack of sampled rectangles. Histograms and discrete CDFs retain their real steps.
+Use exact SVG circles/polygons for uniform supports. For a changing joint density, `DensityField`
+draws a smooth texture at twice the CSS resolution, with an exact SVG `clip` for the support.
+Keep its scene component stable so dragging an unrelated marker does not regenerate the texture.
+Check labels against one another, not only against the SVG boundary; captions can carry longer notes.

@@ -6,7 +6,7 @@
 import { parse as parseYaml, YAMLParseError } from "yaml";
 import type { ZodError, ZodType } from "zod";
 import { blockRegistry, kindRegistry, type BlockDef } from "../registry";
-import { findTallInlineMath, placeholders } from "../markup";
+import { findTallInlineMath, labelMathErrors, placeholders } from "../markup";
 import {
   CourseFile, EvaluationFile, NodeFields, SemesterFile, SourcesFile, TopicFile, type VarValue,
 } from "./schemas";
@@ -106,6 +106,9 @@ function parseBlock(def: BlockDef, value: unknown, ctx: NodeCtx, path: string, p
     return undefined;
   }
   const props = res.data;
+  for (const label of [...(def.markup?.(props) ?? []), ...(def.labels?.(props) ?? [])]) {
+    for (const message of labelMathErrors(label)) ctx.issues.push({ severity: "error", file: ctx.file, path, message: `invalid math: ${message}` });
+  }
   for (const s of def.markup?.(props) ?? []) {
     for (const hit of findTallInlineMath(s)) {
       ctx.issues.push({ severity: "warning", file: ctx.file, path, message: `tall inline math (${hit.what}): $${hit.tex}$`, hint: "move it to its own `math` block so it doesn't stretch the ruled line" });
@@ -125,6 +128,9 @@ function parseNode(raw: unknown, ctx: NodeCtx, path: string, parentId: string | 
     return undefined;
   }
   const f = base.data;
+  for (const label of [f.title, f.note]) if (label) {
+    for (const message of labelMathErrors(label)) ctx.issues.push({ severity: "error", file: ctx.file, path, message: `invalid math in node label: ${message}` });
+  }
   const kind = kindRegistry.get(f.kind);
   if (!kind) {
     const s = kindRegistry.suggest(f.kind);

@@ -37,3 +37,8 @@ A new tone or edge style is just a new CSS class; the spec carries its name (`to
 
 `npm test` (layout tests cover overlaps and edges crossing nodes), then look at a diagram in the app. Add the shape to a
 test graph in `app/src/graph/graph.test.ts` if it has special geometry.
+# Mathematical labels
+
+The shape's `size` receives the measured label block, including rendered TeX width and height.
+Do not assume plain-text line heights. See [math-labels.md](math-labels.md) for authoring and renderer rules.
+

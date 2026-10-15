@@ -38,6 +38,7 @@ export default defineBlock<Graph3DProps>({
   type: "graph3d",
   version: 1,
   group: "visual",
+  interactive: true,
   schema: schema as unknown as z.ZodType<Graph3DProps>,
   component: lazy(() => import("./View")),
   ruler: "snap",
@@ -50,11 +51,13 @@ export default defineBlock<Graph3DProps>({
     ]),
   ],
   markup: (p) => (p.caption ? [p.caption] : []),
+  labels: (p) => [...p.vectors, ...p.points].flatMap(item => item.label ? [item.label] : []),
   size: () => 1,
   describe: (p) => `[3D scene${p.surfaces.length ? `; z = ${p.surfaces.map((s) => s.z).join(", ")}` : ""}${p.vectors.length ? `; ${p.vectors.length} vector(s)` : ""}]`,
   docs: `A 3D scene (react-three-fiber) with orbit controls: drag to rotate, scroll/pinch to zoom.
 \`surfaces\` are z = f(x, y) over a range; \`vectors\` and \`points\` take [x, y, z] (numbers or expressions with
-page variables). Math convention: z is up. Colors are token names. \`height\` in ruled lines.`,
+page variables). Math convention: z is up. Colors are token names. \`height\` in ruled lines.
+Point/vector labels accept \`$TeX$\` and render as camera-facing math text.`,
   example: `- graph3d:
     surfaces: [ { z: "a * (x*x - y*y)", color: pen } ]
     vectors: [ { to: [1, 1, 0], color: red, label: v } ]`,

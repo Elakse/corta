@@ -6,6 +6,7 @@ import { useNodeProgress } from "@/state/node-progress";
 import { useUi } from "@/state/ui";
 import { useT } from "@/i18n";
 import { usePage } from "./page-context";
+import { MathText } from "@/ui/MathText";
 
 function SourceTag({ node, course }: { node: ContentNode; course: Course }) {
   const t = useT();
@@ -27,12 +28,9 @@ function SourceTag({ node, course }: { node: ContentNode; course: Course }) {
 
 function PencilNote({ text }: { text: string }) {
   return (
-    <div className="pencil-note" aria-hidden="true">
-      {text}
-      <svg width="46" height="26" viewBox="0 0 46 26">
-        <path d="M42 3 C 34 16, 20 20, 6 20 M 12 14 L 5 20 L 13 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </div>
+    <aside className="pencil-note" data-rl="text">
+      <MathText text={text} />
+    </aside>
   );
 }
 
@@ -53,6 +51,24 @@ export const NodeView = memo(function NodeView({ node, number }: { node: Content
     useUi.getState().select(node.id);
   };
 
+  const nodeHeading = (
+    <>
+      {heading === "section" && (
+        <h2 className="sec-title" data-rl="text">
+          {number && <span className="num">{number}</span>}
+          {node.title && <MathText text={node.title} />}
+        </h2>
+      )}
+      {heading === "label" && (
+        <div className="kind" data-rl="text">
+          <b>{kindLabel(node.kind, page.language)}</b>
+          {node.title && <MathText text={node.title} className="title" />}
+          <SourceTag node={node} course={page.course} />
+        </div>
+      )}
+    </>
+  );
+
   let sectionIndex = 0;
   return (
     <section
@@ -63,20 +79,12 @@ export const NodeView = memo(function NodeView({ node, number }: { node: Content
       data-selected={selected || undefined}
       onClick={onClick}
     >
-      {heading === "section" && (
-        <h2 className="sec-title" data-rl="text">
-          {number && <span className="num">{number}</span>}
-          {node.title}
-        </h2>
-      )}
-      {heading === "label" && (
-        <div className="kind" data-rl="text">
-          <b>{kindLabel(node.kind, page.language)}</b>
-          {node.title && <span className="title">{node.title}</span>}
-          <SourceTag node={node} course={page.course} />
+      {node.note ? (
+        <div className="node-intro">
+          <div className="node-heading">{nodeHeading}</div>
+          <PencilNote text={node.note} />
         </div>
-      )}
-      {node.note && <PencilNote text={node.note} />}
+      ) : nodeHeading}
       <NodeScope.Provider value={{ nodeId: node.id, evaluationDir: page.evaluationDir, language: page.language }}>
         {node.body.map((e) => {
           if (e.type === "block") return <BlockView key={e.path} blockType={e.blockType} props={e.props} path={e.path} />;

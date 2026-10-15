@@ -14,6 +14,8 @@ export interface ActionDef<I = any> {
   input: z.ZodType<I>;
   /** returns a short result string for the model */
   run: (input: I, ctx: ActionContext) => string | Promise<string>;
+  /** what the chat shows for this call (default: "<name>: <result>"); keep it to one short line */
+  display?: (input: I, result: string) => string;
 }
 
 export const actionRegistry = createRegistry<ActionDef>("llm actions", (a) => a.name);
@@ -28,14 +30,19 @@ export function toolDefinitions() {
   });
 }
 
-export async function runAction(name: string, input: unknown, ctx: ActionContext): Promise<{ ok: boolean; text: string }> {
+export async function runAction(name: string, input: unknown, ctx: ActionContext): Promise<{ ok: boolean; text: string; display: string }> {
   const a = actionRegistry.get(name);
-  if (!a) return { ok: false, text: `unknown action ${name}` };
+  if (!a) return { ok: false, text: `unknown action ${name}`, display: `${name}: unknown action` };
   const parsed = a.input.safeParse(input);
-  if (!parsed.success) return { ok: false, text: `invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}` };
+  if (!parsed.success) {
+    const text = `invalid input: ${parsed.error.issues.map((i) => i.message).join("; ")}`;
+    return { ok: false, text, display: `${name}: ${text}` };
+  }
   try {
-    return { ok: true, text: await a.run(parsed.data, ctx) };
+    const text = await a.run(parsed.data, ctx);
+    return { ok: true, text, display: a.display?.(parsed.data, text) ?? `${name}: ${text}` };
   } catch (e) {
-    return { ok: false, text: e instanceof Error ? e.message : String(e) };
+    const text = e instanceof Error ? e.message : String(e);
+    return { ok: false, text, display: `${name}: ${text}` };
   }
 }

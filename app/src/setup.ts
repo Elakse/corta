@@ -7,6 +7,8 @@ import "@/blocks";
 import "@/calendar";
 import "@/priority";
 import "@/llm/actions";
+import "@/llm/chips";
+import "@/llm/selection/actions";
 import { useContent } from "@/core/content/store";
 import { yamlFiles } from "@/core/content/source";
 

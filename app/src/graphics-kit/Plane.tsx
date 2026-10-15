@@ -82,9 +82,11 @@ export function Plane({
   const handle = (phase: "down" | "move" | "up") => (e: RPointerEvent<SVGSVGElement>) => {
     if (!onPointer) return;
     if (phase === "move" && e.buttons === 0) return;
-    if (phase === "down") (e.target as Element).setPointerCapture?.(e.pointerId);
+    // Capture on the stable SVG: a scene's marks can be replaced during a drag.
+    if (phase === "down") e.currentTarget.setPointerCapture(e.pointerId);
     const r = e.currentTarget.getBoundingClientRect();
     onPointer(api.toMath(e.clientX - r.left, e.clientY - r.top), phase);
+    if (phase === "up" && e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
   };
   return (
     <div ref={ref} className="kit-plane" style={{ height }}>

@@ -1,5 +1,5 @@
 import "mafs/core.css";
-import { Coordinates, Mafs, MovablePoint, Plot, Point, Text, Vector, Line } from "mafs";
+import { Coordinates, Mafs, MovablePoint, Plot, Point, Text, Vector, Line, useTransformContext, vec } from "mafs";
 import type { BlockComponentProps } from "@/core/registry";
 import { compile, evalNum } from "@/core/expr";
 import { useVarsStore } from "@/core/vars";
@@ -7,8 +7,19 @@ import { useStore } from "zustand";
 import { renderInline } from "@/core/markup";
 import { useTokens } from "@/theme";
 import type { Graph2DProps } from "./index";
+import { hasLabelMath } from "@/core/markup/labels";
+import { SvgMathLabel } from "@/ui/MathText";
+import { fonts } from "@/theme";
 
 const color = (c: string) => (/^[a-z-]+$/.test(c) ? `var(--${c})` : c);
+
+function PlotLabel({ at, text, color }: { at: [number, number]; text: string; color: string }) {
+  const { viewTransform, userTransform } = useTransformContext();
+  const [x, y] = vec.transform(at, vec.matrixMult(viewTransform, userTransform));
+  return hasLabelMath(text)
+    ? <SvgMathLabel text={text} x={x + 8} y={y - 8} font={`500 16px ${fonts.body}`} color={color} />
+    : <Text x={at[0]} y={at[1]} attach="ne" color={color}>{text}</Text>;
+}
 
 export default function Graph2DView({ props }: BlockComponentProps<Graph2DProps>) {
   const store = useVarsStore();
@@ -37,7 +48,7 @@ export default function Graph2DView({ props }: BlockComponentProps<Graph2DProps>
           return (
             <g key={i}>
               <Vector tail={pt(v.from)} tip={tip} color={color(v.color)} weight={3} />
-              {v.label && <Text x={tip[0]} y={tip[1]} attach="ne" color={color(v.color)}>{v.label}</Text>}
+              {v.label && <PlotLabel at={tip} text={v.label} color={color(v.color)} />}
             </g>
           );
         })}
@@ -58,7 +69,7 @@ export default function Graph2DView({ props }: BlockComponentProps<Graph2DProps>
               ) : (
                 <Point x={at[0]} y={at[1]} color={color(p.color)} />
               )}
-              {p.label && <Text x={at[0]} y={at[1]} attach="ne" color={color(p.color)}>{p.label}</Text>}
+              {p.label && <PlotLabel at={at} text={p.label} color={color(p.color)} />}
             </g>
           );
         })}

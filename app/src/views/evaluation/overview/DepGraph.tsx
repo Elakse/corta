@@ -7,6 +7,7 @@ import { useUi } from "@/state/ui";
 import { kindRegistry } from "@/core/registry";
 import { useT } from "@/i18n";
 import type { OvNode } from "./model";
+import { MathText } from "@/ui/MathText";
 
 /** Dependencies (relations) between nodes of this evaluation, laid out in layers (prerequisites first). */
 export default function DepGraph({ tree }: { evaluation: Evaluation; tree: OvNode }) {
@@ -43,7 +44,7 @@ export default function DepGraph({ tree }: { evaluation: Evaluation; tree: OvNod
       return {
         id,
         position: { x: l * 240, y: r * 74 },
-        data: { label: `${kindRegistry.get(n.kind)?.glyph ?? ""} ${n.title}` },
+        data: { label: <MathText text={`${kindRegistry.get(n.kind)?.glyph ?? ""} ${n.title}`} /> },
         className: `dg-node s-${n.status}`,
       };
     });

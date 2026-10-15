@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Line, OrbitControls } from "@react-three/drei";
+import { Html, Line, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useStore } from "zustand";
 import type { BlockComponentProps } from "@/core/registry";
@@ -9,11 +9,19 @@ import { useVarsStore } from "@/core/vars";
 import { useTokens, type LiveTokens } from "@/theme";
 import { renderInline } from "@/core/markup";
 import type { Graph3DProps } from "./index";
+import { hasLabelMath } from "@/core/markup/labels";
+import { MathText } from "@/ui/MathText";
 
 type V3 = [number, number, number];
 
 /** Text label as a camera-facing sprite (drawn into a canvas texture with the theme font). */
-function TextSprite({ position, text, color, font, size = 0.32 }: { position: V3 | THREE.Vector3; text: string; color: string; font: string; size?: number }) {
+type SceneLabelProps = { position: V3 | THREE.Vector3; text: string; color: string; font: string; size?: number };
+function TextSprite(props: SceneLabelProps) {
+  return hasLabelMath(props.text)
+    ? <Html position={props.position} center distanceFactor={8} style={{ pointerEvents: "none", whiteSpace: "nowrap", color: props.color }}><MathText text={props.text} style={{ font: `600 ${Math.round((props.size ?? .32) * 48)}px ${props.font}` }} /></Html>
+    : <PlainSprite {...props} />;
+}
+function PlainSprite({ position, text, color, font, size = 0.32 }: SceneLabelProps) {
   const tex = useMemo(() => {
     const c = document.createElement("canvas");
     const px = 64;
@@ -129,10 +137,13 @@ export default function Graph3DView({ props }: BlockComponentProps<Graph3DProps>
             <Arrow key={i} from={n3(v.from)} to={n3(v.to)} color={tok(t, v.color)} label={v.label} font={t.font.hand} />
           ))}
           {props.points.map((p, i) => (
-            <mesh key={i} position={m2t(n3(p.at))}>
-              <sphereGeometry args={[0.07, 20, 20]} />
-              <meshBasicMaterial color={tok(t, p.color)} />
-            </mesh>
+            <group key={i}>
+              <mesh position={m2t(n3(p.at))}>
+                <sphereGeometry args={[0.07, 20, 20]} />
+                <meshBasicMaterial color={tok(t, p.color)} />
+              </mesh>
+              {p.label && <TextSprite position={m2t(n3(p.at))} text={p.label} color={tok(t, p.color)} font={t.font.hand} />}
+            </group>
           ))}
           <OrbitControls enablePan={false} makeDefault />
         </Canvas>

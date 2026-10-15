@@ -123,8 +123,14 @@ Write the topic files. For each node, choose blocks from the catalog:
   hidden solution (`basis`).
 - Alternative explanations: `tabs`. Side by side: `columns`.
 - Keep paragraphs short; one idea per node. Pencil `note` only for the single most common trap of a node, in
-  ~20 characters (it lives in a narrow margin and is hidden on small screens).
+  ~20 characters. It reserves space beside the heading, or in its own row below the heading when there
+  is not enough room; it has no arrow and remains visible on small screens. Put longer explanations
+  in body blocks instead.
 - Canvas modules: size labels from the `width` prop and keep wide drawings out of `columns`, so they stay legible
+  - Mathematical labels (diagrams, plot/vector/point labels, titles, controls and canvas readouts) use
+    explicit `$TeX$`. Quote diagram labels; use `kit.Label`, `kit.MathText` or `kit.SvgMathLabel`, and
+    measure rendered formulas in both dimensions. Keep formulas whole when wrapping. Programming
+    names and code stay literal. See `../../docs/guides/math-labels.md` for examples and verification.
   on a phone.
 
 ### 10. Source linking

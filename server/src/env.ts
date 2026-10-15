@@ -11,6 +11,8 @@ export const env = {
   port: Number(str("CORTA_PORT") || 8787),
   appPort: Number(str("CORTA_APP_PORT") || 5173),
   dbPath: resolve(ROOT, str("CORTA_DB") || "server/data/corta.db"),
+  /** where course folders live; synthetic fixtures join only for tests, like in the app */
+  contentRoots: [resolve(ROOT, "content"), ...(str("CORTA_E2E") || str("VITE_CORTA_TEST_CONTENT") === "1" ? [resolve(ROOT, "tests/fixtures/content")] : [])],
   anthropicKey: str("ANTHROPIC_API_KEY"),
   opencodeGoKey: str("OPENCODE_GO_API_KEY"),
   llmModel: str("CORTA_LLM_MODEL"),

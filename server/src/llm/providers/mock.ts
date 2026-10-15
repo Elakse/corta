@@ -19,8 +19,11 @@ export const mockProvider: LlmProvider = {
       yield { type: "done", stopReason: "end_turn" };
       return;
     }
-    const text = typeof last?.content === "string" ? last.content : "";
-    const answer = focus ? `Estás mirando **${focus[1]!.trim()}**. $\\lambda$ es autovalor si $Av = \\lambda v$.` : "No hay nada seleccionado.";
+    const blocks = Array.isArray(last?.content) ? last.content : [];
+    const images = blocks.filter((b) => b.type === "image").length;
+    const text = typeof last?.content === "string" ? last.content : blocks.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("\n");
+    const seen = images ? `Recibí ${images} ${images === 1 ? "imagen" : "imágenes"}. ` : "";
+    const answer = seen + (focus ? `Estás mirando **${focus[1]!.trim()}**. $\\lambda$ es autovalor si $Av = \\lambda v$.` : "No hay nada seleccionado.");
     for (const w of answer.split(/(?<= )/)) yield { type: "text", text: w };
     if (focus && /abr|open/i.test(text) && req.tools.some((t) => t.name === "openCollapsible"))
       yield { type: "tool_use", id: "tool_1", name: "openCollapsible", input: { nodeId: focus[2]!.trim() } };

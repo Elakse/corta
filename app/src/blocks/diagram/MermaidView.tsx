@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useTokens } from "@/theme";
+import { mermaidMath } from "@/core/markup/labels";
 
 let mermaidP: Promise<typeof import("mermaid").default> | null = null;
 let queue: Promise<unknown> = Promise.resolve();
@@ -33,6 +34,7 @@ export default function MermaidView({ code }: { code: string }) {
       mermaid.initialize({
         startOnLoad: false,
         securityLevel: "strict",
+        forceLegacyMathML: true,
         theme: "base",
         fontFamily: t.font.display,
         themeVariables: {
@@ -54,7 +56,7 @@ export default function MermaidView({ code }: { code: string }) {
         },
       });
       try {
-        const { svg } = await mermaid.render(id, code);
+        const { svg } = await mermaid.render(id, mermaidMath(code));
         if (alive) {
           setSvg(svg);
           setError(null);

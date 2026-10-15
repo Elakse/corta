@@ -4,6 +4,7 @@ import { useId } from "react";
 import { defineBlock } from "@/core/registry";
 import { useVar } from "@/core/vars";
 import { formatVar } from "@/core/markup";
+import { MathText } from "@/ui/MathText";
 
 const schema = z
   .object({
@@ -22,7 +23,7 @@ function InputView({ props }: { props: Props }) {
   const [v, set] = useVar(props.var);
   return (
     <div className="ctl ctl-input">
-      <label htmlFor={id}>{props.label}</label>
+      <label htmlFor={id}><MathText text={props.label} /></label>
       <input
         id={id}
         type={props.type}
@@ -44,10 +45,12 @@ export default defineBlock<Props>({
   type: "input",
   version: 1,
   group: "control",
+  interactive: true,
   schema,
   component: InputView,
   ruler: "snap",
   writes: (p) => [p.var],
+  markup: (p) => [p.label],
   size: () => 0,
   describe: (p, s) => `[input ${p.label} = ${formatVar(s.vars[p.var])}]`,
   docs: "A small number/text field that writes a page variable (e.g. a matrix entry, a sample size).",

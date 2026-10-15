@@ -48,7 +48,7 @@ export function CanvasView({ props, ctx }: BlockComponentProps<CanvasProps>) {
   }, [ctx.evaluationDir, props.module, key]);
   const height = props.height * tokens.u - 26;
   const body = (
-    <div ref={ref} style={{ height }} className="canvas-host">
+    <div ref={ref} style={{ minHeight: height }} className="canvas-host">
       {!Mod ? (
         <div className="block-error">canvas module “{props.module}” not found in {ctx.evaluationDir}/canvas/</div>
       ) : (

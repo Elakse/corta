@@ -33,12 +33,27 @@ describe("LLM context builder", () => {
     expect(ctx.focus?.id).toBe("alg/p1/autoval/def");
     expect(ctx.text).toContain("Autovalor y autovector");
     expect(ctx.text).toContain("learned");
-    expect(ctx.text).toContain("Apunte de la Unidad 3 p.12 [explicit]");
+    expect(ctx.text).toContain("Apunte de la Unidad 3 (ref apunte-u3) p.12 [explicit]");
     expect(ctx.text).toContain("theta = 45");
     expect(ctx.text).toContain("Polinomio característico");
   });
   it("falls back to the most visible node", () => {
     const ctx = buildContext({ graph, path: "/s/_sample/c/algebra/e/parcial-1", selected: null, visible: { "alg/p1/autoval": 1, "alg/p1/autoval/thm-li": 0.8 }, vars: {}, done: new Set(), today: "2026-10-07" });
     expect(ctx.focus?.id).toBe("alg/p1/autoval/thm-li");
+  });
+  it("does not let a stale selection or invalid visibility override the current screen", () => {
+    const ctx = buildContext({ graph, path: "/s/_sample/c/algebra/e/parcial-1", selected: "alg/p1/autoval/def",
+      visible: { "alg/p1/autoval/def": 0, "alg/p1/autoval/pol-car": 2.8, "alg/p1/autoval/thm-li": NaN, unknown: 3 },
+      vars: {}, done: new Set(), today: "2026-10-13" });
+    expect(ctx.focus?.id).toBe("alg/p1/autoval/pol-car");
+    expect(ctx.text).not.toContain("Autovalor y autovector");
+  });
+  it("ignores selected and visible nodes from a different evaluation", () => {
+    const ref = graph.nodes.get("alg/p1/autoval/def")!;
+    const otherGraph = { ...graph, nodes: new Map(graph.nodes).set("other/def", { ...ref, evaluationKey: "other/eval", node: { ...ref.node, id: "other/def" } }) };
+    const ctx = buildContext({ graph: otherGraph, path: "/s/_sample/c/algebra/e/parcial-1", selected: "other/def",
+      visible: { "other/def": 3, "alg/p1/autoval/pol-car": 2 }, vars: {}, done: new Set(), today: "2026-10-13" });
+    expect(ctx.focus?.id).toBe("alg/p1/autoval/pol-car");
+    expect(ctx.text).not.toContain("other/def");
   });
 });

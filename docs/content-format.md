@@ -129,7 +129,7 @@ body:
       id: alg/p1/autoval/def
       kind: definition
       title: Autovalor y autovector
-      note: "¡ojo! v ≠ 0 siempre"           # optional pencil note in the margin
+      note: "¡ojo! v ≠ 0 siempre"           # optional pencil note beside/below the heading
       sources: [{ ref: apunte-u3, page: 12, basis: explicit }]
       relations: [{ type: prerequisite, target: alg/p1/matrices/det }]
       body:
@@ -151,7 +151,7 @@ body:
 | `container` | bool | No own checkbox state; complete when all children are. Default from the kind. |
 | `weight` | number > 0 | Relevance multiplier for progress % and treemap area (default 1). |
 | `number` | string | Overrides the automatic section number. |
-| `note` | string | Pencil note in the right margin (hidden on phones). |
+| `note` | string | Short red handwritten note beside the heading when space permits, otherwise in its own row below it. Reserves space, has no arrow, and stays visible on small screens. |
 | `vars` | map | Page variables (number / bool / string) with their initial values. |
 | `sources` | list | `{ ref, page?, locator?, basis }`. `basis ∈ explicit \| inferred \| generated`; `ref` must exist in `sources.yaml` (may be omitted only for `generated`). |
 | `relations` | list | `{ type, target }`, `type ∈ prerequisite \| related \| uses \| generalizes \| example-of \| tested-in`. Targets that don't exist are warned as orphans. |
@@ -377,9 +377,13 @@ Example:
 Freeform interactive graphic: a TSX module written for this page, in `evaluations/<eval>/canvas/<module>.tsx`.
 Use it when no prebuilt block can express the idea. The module default-exports a React component that receives
 `{ vars, setVar, tokens, kit, width, height, props }`: page variables, a setter, live design tokens, the
-graphics kit (Plane, Grid, Axes, Vector, Point, Label, Segment, Curve, Shape, Transition), the card's inner size
-and the static `props` from YAML. Declare every variable it touches in `reads`/`writes`, and add a one-line
-`describe` for the LLM. Errors are caught and shown in place.
+graphics kit (Plane, Grid, Axes, Vector, Point, Label, Segment, Curve, Shape, Transition, DensityField, MathText, SvgMathLabel), the card's inner size
+and the static `props` from YAML. `height` is a preferred drawing budget: the host can grow if wrapped controls
+or labels need extra space. Measure controls instead of subtracting a fixed header height. Declare every variable it touches in `reads`/`writes`, and add a one-line
+`describe` for the LLM. `kit.Label` renders string children with `$TeX$` as measured math. Use
+`kit.MathText` for HTML controls/readouts and `kit.SvgMathLabel` for custom SVG coordinates; never draw
+TeX through raw SVG `<text>` or canvas `fillText`. Keep formulas whole when wrapping and measure their
+rendered dimensions, including height, to avoid clipping. Errors are caught and shown in place.
 
 | field | type | required | default |
 |---|---|---|---|
@@ -531,10 +535,17 @@ Example:
 
 A diagram written in Mermaid. Flowcharts (`flowchart LR|TD`) and state diagrams (`stateDiagram-v2`) are drawn by
 Corta's own engine: layered layout, curved edges that never cross a node, edge-label chips, hover to light every path
-through a node. Supported: nodes `A[text]` `A(text)` `A((text))` `A([text])` `A{text}`, links `-->` `---` `-.->` `==>`,
+through a node. On narrow screens horizontal diagrams may reflow vertically, with compact spacing and full phone
+width; node labels and connections stay unchanged. Larger diagrams retain horizontal scrolling. Supported: nodes
+`A[text]` `A(text)` `A((text))` `A([text])` `A{text}`, links `-->` `---` `-.->` `==>`,
 link text `-->|text|` or `-- text -->`, `<br/>` line breaks, quoted labels, chains; states with `[*]` start/end and
 `: label` transitions. Anything else in a flowchart (subgraph, style, classDef, `&`) or any other kind (class, sequence,
-ER, mindmap…) is drawn by Mermaid itself, in the same card. Keep labels short; quote labels with special characters.
+ER, mindmap…) is drawn by Mermaid itself, in the same card. Self-loops also use the complete Mermaid fallback.
+Write mathematical node/edge labels with `$TeX$` (`$$TeX$$` is accepted too), e.g. `A["$F_X^{-1}(u)$"]`
+and `-->|"$P(A\mid B)$"|`. Prose stays literal; programming names/identifiers are not guessed to be math.
+KaTeX formulas are measured in both width and height, including fractions and limits; taller labels grow their
+boxes. Use `<br/>` between complete formulas/prose lines. The fallback normalizes math to Mermaid's native
+double-dollar syntax and uses the same KaTeX fonts. Keep labels short; quote labels with special characters.
 
 | field | type | required | default |
 |---|---|---|---|
@@ -560,7 +571,8 @@ An interactive 2D plot (Mafs) on a taped card. Numbers can be expressions using 
 variables (e.g. `"k * sin(x)"`, `["cos(theta)", "sin(theta)"]`); the graph redraws when variables change.
 `plots` are y = f(x) with `fn` an expression in x; `parametric` takes x(t), y(t); `vectors`, `segments`, `points`.
 A point with `drag: { x: a, y: b }` is draggable and writes those variables. Colors are token names
-(pen, red, learned-ink, ink-soft, ev-…). `height` in ruled lines.
+(pen, red, learned-ink, ink-soft, ev-…). `height` in ruled lines. Point/vector labels accept `$TeX$`
+for mathematical notation; coordinate/function expressions remain executable expressions without delimiters.
 
 | field | type | required | default |
 |---|---|---|---|
@@ -589,6 +601,7 @@ Example:
 A 3D scene (react-three-fiber) with orbit controls: drag to rotate, scroll/pinch to zoom.
 `surfaces` are z = f(x, y) over a range; `vectors` and `points` take [x, y, z] (numbers or expressions with
 page variables). Math convention: z is up. Colors are token names. `height` in ruled lines.
+Point/vector labels accept `$TeX$` and render as camera-facing math text.
 
 | field | type | required | default |
 |---|---|---|---|

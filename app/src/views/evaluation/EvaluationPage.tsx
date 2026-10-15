@@ -24,7 +24,7 @@ export default function EvaluationPage() {
     );
   return (
     <VarsProvider scope={ev.key} initial={pageVars(ev.content.topics)}>
-      <Notebook course={course} evaluation={ev} />
+      <Notebook key={ev.key} course={course} evaluation={ev} />
     </VarsProvider>
   );
 }

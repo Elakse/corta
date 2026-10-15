@@ -10,7 +10,7 @@ interface UiStore {
   /** node the user clicked (what "this" means for the LLM) */
   selected: string | null;
   select: (id: string | null) => void;
-  /** nodes currently in the viewport, with their visible ratio */
+  /** nodes currently in the reading viewport, ranked by visibility and reading position */
   visible: Record<string, number>;
   setVisible: (id: string, ratio: number) => void;
   /** request to scroll the evaluation page to a node (consumed by the page) */
@@ -18,6 +18,11 @@ interface UiStore {
   scrollTo: (id: string) => void;
   chatOpen: boolean;
   setChatOpen: (open: boolean) => void;
+  settingsOpen: boolean;
+  setSettingsOpen: (open: boolean) => void;
+  /** camera calibration dialog (opened from Settings and from the photo dialog) */
+  cameraSetupOpen: boolean;
+  setCameraSetupOpen: (open: boolean) => void;
   /** day open in the day panel (YYYY-MM-DD) */
   day: string | null;
   openDay: (date: string | null) => void;
@@ -49,6 +54,10 @@ export const useUi = create<UiStore>((set) => ({
   scrollTo: (id) => set({ scrollTarget: { id, seq: ++seq } }),
   chatOpen: false,
   setChatOpen: (chatOpen) => set({ chatOpen }),
+  settingsOpen: false,
+  setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
+  cameraSetupOpen: false,
+  setCameraSetupOpen: (cameraSetupOpen) => set({ cameraSetupOpen }),
   day: null,
   openDay: (day) => set({ day }),
   sessionEditor: null,

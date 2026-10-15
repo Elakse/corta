@@ -19,6 +19,21 @@ export type TextKind = "node" | "chip";
 export interface LayoutOptions {
   /** width in px of one line of text, in the font used for that kind */
   measure: (text: string, kind: TextKind) => number;
+  /** Rendered line height, including fractions/superscripts; defaults to the plain-text rhythm. */
+  measureHeight?: (text: string, kind: TextKind) => number;
+  /** Optional compact spacing; text and node sizes remain unchanged. */
+  crossGap?: number;
+  padding?: number;
+}
+
+/** Reflow a horizontal diagram vertically when that fits readable labels in a narrow card. */
+export function layoutForWidth(spec: GraphSpec, opts: LayoutOptions, available: number): GraphLayout {
+  const layout = layoutGraph(spec, opts);
+  if (available <= 0 || layout.width * .85 <= available || (layout.direction !== "LR" && layout.direction !== "RL")) return layout;
+  const vertical = layoutGraph({ ...spec, direction: layout.direction === "LR" ? "TB" : "BT" }, opts);
+  if (vertical.width * .85 <= available) return vertical;
+  const compact = layoutGraph({ ...spec, direction: vertical.direction }, { ...opts, crossGap: 14, padding: 16 });
+  return compact.width * .85 <= available ? compact : layout;
 }
 
 export const NODE_LINE = 18;
@@ -33,6 +48,7 @@ export interface PlacedNode {
   w: number;
   h: number;
   lines: string[];
+  lineHeights: number[];
   shape: string;
   path: string;
   deco: string[];
@@ -50,7 +66,7 @@ export interface PlacedEdge {
   d: string;
   /** arrowhead polygon, or null for a plain line */
   arrow: string | null;
-  label?: { lines: string[]; x: number; y: number; w: number; h: number };
+  label?: { lines: string[]; lineHeights: number[]; x: number; y: number; w: number; h: number };
   style: string;
   /** the edge closes a cycle (drawn like the rest; the arrowhead sits at the other end of the curve) */
   reversed: boolean;
@@ -73,6 +89,7 @@ interface Item {
   shape?: ShapeDef;
   box?: Box;
   lines?: string[];
+  lineHeights?: number[];
   /** size along / across the flow */
   a: number;
   c: number;
@@ -83,7 +100,7 @@ interface Item {
   ins: Port[];
   outs: Port[];
 }
-interface Chip { lines: string[]; w: number; h: number }
+interface Chip { lines: string[]; lineHeights: number[]; w: number; h: number }
 interface E {
   index: number;
   spec: GraphEdge;
@@ -116,9 +133,10 @@ export function layoutGraph(spec: GraphSpec, opts: LayoutOptions): GraphLayout {
     if (byId.has(n.id)) continue;
     const shape = shapeRegistry.get(n.shape ?? "rect") ?? rect;
     const lines = shape.noLabel ? [] : n.label.split("\n");
-    const text = { w: Math.max(0, ...lines.map((l) => opts.measure(l, "node"))), h: lines.length * NODE_LINE };
+    const lineHeights = lines.map(line => Math.max(NODE_LINE, opts.measureHeight?.(line, "node") ?? NODE_LINE));
+    const text = { w: Math.max(0, ...lines.map((l) => opts.measure(l, "node"))), h: lineHeights.reduce((sum, h) => sum + h, 0) };
     const box = shape.size(text);
-    const it: Item = { real: true, node: n, shape, box, lines, a: vertical ? box.h : box.w, c: vertical ? box.w : box.h, layer: 0, p: 0, q: 0, want: 0, ins: [], outs: [] };
+    const it: Item = { real: true, node: n, shape, box, lines, lineHeights, a: vertical ? box.h : box.w, c: vertical ? box.w : box.h, layer: 0, p: 0, q: 0, want: 0, ins: [], outs: [] };
     byId.set(n.id, it);
     nodes.push(it);
   }
@@ -129,7 +147,8 @@ export function layoutGraph(spec: GraphSpec, opts: LayoutOptions): GraphLayout {
     const e: E = { index, spec: se, a, b, rev: false, src: a, dst: b, chain: [], bow: 0, pts: [] };
     if (se.label) {
       const lines = se.label.split("\n");
-      e.chip = { lines, w: Math.ceil(Math.max(...lines.map((l) => opts.measure(l, "chip")))) + CHIP_PAD_X, h: lines.length * CHIP_LINE + CHIP_PAD_Y };
+      const lineHeights = lines.map(line => Math.max(CHIP_LINE, opts.measureHeight?.(line, "chip") ?? CHIP_LINE));
+      e.chip = { lines, lineHeights, w: Math.ceil(Math.max(...lines.map((l) => opts.measure(l, "chip")))) + CHIP_PAD_X, h: lineHeights.reduce((sum, h) => sum + h, 0) + CHIP_PAD_Y };
     }
     edges.push(e);
   });
@@ -226,7 +245,7 @@ export function layoutGraph(spec: GraphSpec, opts: LayoutOptions): GraphLayout {
   reindex();
 
   // ---- 5. place ----
-  const crossGap = vertical ? 38 : 30;
+  const crossGap = opts.crossGap ?? (vertical ? 38 : 30);
   const sep = (x: Item, y: Item) => ((x.real ? crossGap : 10) + (y.real ? crossGap : 10)) / 2;
   for (const l of layers) {
     let q = 0;
@@ -305,9 +324,10 @@ export function layoutGraph(spec: GraphSpec, opts: LayoutOptions): GraphLayout {
     if (at) grow(at.p, at.q, chipAlong(e) / 2, chipCross(e) / 2);
   }
   if (!isFinite(minP)) { minP = maxP = minQ = maxQ = 0; }
-  const P = maxP - minP + PAD * 2, Q = maxQ - minQ + PAD * 2;
+  const padding = opts.padding ?? PAD;
+  const P = maxP - minP + padding * 2, Q = maxQ - minQ + padding * 2;
   const T = (pt: Pt) => {
-    const pp = pt.p - minP + PAD, qq = pt.q - minQ + PAD;
+    const pp = pt.p - minP + padding, qq = pt.q - minQ + padding;
     const along = mirrored ? P - pp : pp;
     return vertical ? { x: qq, y: along } : { x: along, y: qq };
   };
@@ -316,7 +336,7 @@ export function layoutGraph(spec: GraphSpec, opts: LayoutOptions): GraphLayout {
   const placedNodes: PlacedNode[] = nodes.map((it) => {
     const c = T(it), box = it.box!, shape = it.shape!;
     return {
-      id: it.node!.id, x: round(c.x), y: round(c.y), w: box.w, h: box.h, lines: it.lines!, shape: shape.key,
+      id: it.node!.id, x: round(c.x), y: round(c.y), w: box.w, h: box.h, lines: it.lines!, lineHeights: it.lineHeights!, shape: shape.key,
       path: shape.path(box), deco: shape.deco?.(box) ?? [], className: shape.className, tone: it.node!.tone,
       noLabel: !!shape.noLabel, layer: it.layer,
     };
@@ -344,7 +364,7 @@ export function layoutGraph(spec: GraphSpec, opts: LayoutOptions): GraphLayout {
     const c = at ? T(at) : null;
     return {
       index: e.index, from: e.a.node!.id, to: e.b.node!.id, d, arrow, style: e.spec.style ?? "solid", reversed: e.rev, layer: e.src.layer,
-      label: e.chip && c ? { lines: e.chip.lines, x: round(c.x), y: round(c.y), w: e.chip.w, h: e.chip.h } : undefined,
+      label: e.chip && c ? { lines: e.chip.lines, lineHeights: e.chip.lineHeights, x: round(c.x), y: round(c.y), w: e.chip.w, h: e.chip.h } : undefined,
     };
   });
 

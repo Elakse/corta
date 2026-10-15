@@ -35,9 +35,10 @@ export function BlockView({ blockType, props, path }: { blockType: string; props
       </Suspense>
     </BlockBoundary>
   );
-  if (def.ruler === "self") return <div className={`blk blk-${blockType}`}>{inner}</div>;
+  const interactive = def.interactive || undefined;
+  if (def.ruler === "self") return <div className={`blk blk-${blockType}`} data-interactive={interactive}>{inner}</div>;
   return (
-    <div className={`blk blk-${blockType} rl-snap${def.card ? " has-card" : ""}${def.surface ? " has-surface" : ""}`} data-rl="snap">
+    <div className={`blk blk-${blockType} rl-snap${def.card ? " has-card" : ""}${def.surface ? " has-surface" : ""}`} data-rl="snap" data-interactive={interactive}>
       <div className="rl-snap-inner">{def.card ? <div className="card">{inner}</div> : inner}</div>
     </div>
   );

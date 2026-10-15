@@ -4,6 +4,7 @@
  * so the caller falls back to Mermaid itself: nothing is ever half-drawn.
  */
 import type { Direction, GraphEdge, GraphNode, GraphSpec } from "./types";
+import { labelParts } from "@/core/markup/labels";
 
 const ID = /^[\wÀ-￿]+/;
 const ENTITIES: Record<string, string> = { "&quot;": '"', "&lt;": "<", "&gt;": ">", "&amp;": "&", "&nbsp;": " " };
@@ -14,7 +15,7 @@ function cleanLabel(raw: string): string | null {
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/&(quot|lt|gt|amp|nbsp);/g, (m) => ENTITIES[m]!)
     .replace(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(+n));
-  if (/<\/?[a-z]/i.test(t)) return null;
+  if (labelParts(t).some(part => !part.math && /<\/?[a-z]/i.test(part.text))) return null;
   return t.split("\n").map((l) => l.trim()).join("\n").trim();
 }
 
@@ -116,7 +117,10 @@ function flowchart(lines: string[], direction: Direction): GraphSpec | null {
         ({ style, arrow } = link);
         after = rest.slice(rest.match(link.re)![0].length).trimStart();
         if (after.startsWith("|")) {
-          const end = after.indexOf("|", 1);
+          // Quoted labels may contain a conditional-probability bar, e.g. |"P(A|B)"|.
+          const quoted = after.slice(1).trimStart().startsWith('"');
+          const quoteEnd = quoted ? after.indexOf('"', after.indexOf('"') + 1) : -1;
+          const end = quoted ? (quoteEnd < 0 ? -1 : after.indexOf("|", quoteEnd + 1)) : after.indexOf("|", 1);
           if (end < 0) return null;
           const raw = after.slice(1, end).trim();
           const text = cleanLabel(raw.startsWith('"') && raw.endsWith('"') && raw.length > 1 ? raw.slice(1, -1) : raw);
@@ -131,7 +135,7 @@ function flowchart(lines: string[], direction: Direction): GraphSpec | null {
       cur = next;
     }
   }
-  return b.nodes.size ? b.spec(direction) : null;
+  return b.nodes.size && !b.edges.some(edge => edge.from === edge.to) ? b.spec(direction) : null;
 }
 
 function stateDiagram(lines: string[]): GraphSpec | null {

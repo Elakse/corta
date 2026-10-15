@@ -36,13 +36,13 @@ export function SemesterCard({ semester }: { semester: Semester }) {
   const locale = useLocale();
   const p = useTreeProgress(semesterTree(semester));
   return (
-    <section className="card-surface sem-card">
+    <section className="card-surface sem-card home-card">
       <div className="sem-main">
         <div className="eyebrow">
           {t("home.semester")}
           {semester.data.sample && <em className="sample-tag">· {t("sample")}</em>}
         </div>
-        <Link to={semesterUrl(semester)} className="sem-title">
+        <Link to={semesterUrl(semester)} className="sem-title home-card-target">
           {semester.data.label}
           <ArrowUpRight size={22} />
         </Link>

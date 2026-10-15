@@ -29,10 +29,18 @@ Three rules hold everything together:
 The tutor talks through `LlmProvider`, independent of the model vendor. Small registered provider profiles
 use reusable protocol adapters (`server/src/llm/adapters/`) for Chat Completions or Anthropic Messages.
 Profiles own credential references, endpoints, default models and model suggestions; only non-secret
-metadata reaches the panel. The UI discovers profiles and saves provider/model preferences in SQLite
+metadata reaches Settings and chat. The UI discovers profiles and saves provider/model preferences in SQLite
 (`llm.configuration`, last model per provider). Each chat turn pins the explicit choice through every tool
 round. No automatic provider fallback occurs. OpenCode Go uses a fixed subscription endpoint; its account
 overflow setting must be disabled separately. See `guides/llm-setup.md` for activation and extension.
+
+### Mathematical labels
+
+`core/markup/labels.ts` handles explicit TeX in authored labels; shared `MathText` / `SvgMathLabel`
+components render it through KaTeX with literal prose escaped. The graph engine injects measured
+label widths/heights into its pure layout. Headings, overview labels, controls, 2D/3D labels and canvas
+graphics use the same notation. Block registries expose visual `labels` for syntax validation, separate
+from ruled `markup` and its tall-inline rule. See `guides/math-labels.md`.
 
 ---
 
@@ -92,6 +100,20 @@ Your two options aren't exclusive. Proposed hybrid:
 - The **`canvas` block** gives the agent full code freedom (a small TSX module per graphic), with the kit and tokens available. It can use the legos, draw raw, or mix.
 
 Result: as much freedom as needed, and it still looks like it belongs.
+
+Canvas hosts treat the requested height as a minimum and allow modules to grow for measured control
+rows and captions. Drawing height follows the remaining space, with a readable minimum at narrow card
+widths. Pointer capture belongs to the stable `Plane` SVG, so redrawing marks does not interrupt a drag.
+
+`graphics-kit/paths.ts` samples curves at screen resolution and splits them at declared breakpoints;
+area fills follow the same curve. `DensityField` renders continuous joint densities with a smooth,
+theme-colored texture and exact SVG support clipping. Uniform regions use vector geometry directly.
+Diagram layout measures the available card width and reflows horizontal graphs vertically when that
+fits readable labels. Phone diagrams can use the viewport width beyond the notebook's narrow writing
+column, preserving readable branches. Compact spacing keeps node dimensions unchanged; larger graphs
+retain scrolling where neither orientation fits. Open solution containers allow this wider content;
+closed solutions remain clipped and inert. The breakout is measured on mount/window resize;
+the graph observes width changes only, avoiding needless reflow during notebook height alignment.
 
 ### Interaction between blocks: shared variables
 
@@ -156,7 +178,7 @@ Evaluation pages (midterm, final, assignment) are drawn as **one endless spiral-
 
 ### Paper
 
-- Two paper types per course/evaluation: **ruled** (rayada) and **grid** (cuadriculada). Same unit `--u` (one line = one grid cell).
+- Two paper types per course/evaluation: **ruled** (rayada) and **grid** (cuadriculada). Same unit `--u` (one line = one grid cell). Change the open notebook's paper in Settings; the choice persists per evaluation.
 - Lines, grid and spiral are repeating patterns: the sheet has **no fixed height** and grows with content (infinite scroll; long pages render sections lazily later).
 - Graphs and images are "taped" cards that sit over the paper; their height is rounded up to whole lines.
 - Light and dark themes (dark paper, soft light rules). All colors are theme tokens.
@@ -178,6 +200,15 @@ Every piece of text must sit **on** a rule. Instead of guessing font metrics, th
 - Table cells don't wrap (the table scrolls horizontally instead).
 - A new block either contains text the ruler can measure, or is snapped.
 - **Ruler test (required):** `../prototypes/notebook-page/baseline-check.py` finds every visible line of text on the page and checks its distance to the nearest rule, at several widths and both themes. It becomes an automated test in the real project; a block that breaks it doesn't ship.
+
+### Pencil notes
+
+- A node's optional `note` shares a wrapping flex row with its heading. The heading keeps its intrinsic
+  preferred width; if heading, note and gap cannot fit, the note moves to its own row before the body.
+- Notes participate in normal flow, use ruled line-height and measured ruler baselines, and have no
+  arrow or rotation. Their occupied height separates them from the body instead of overlaying it.
+- Body blocks retain the full writing width, including tables, display formulas and columns. Notes
+  remain visible on phones; long prose wraps. Note font size and preferred width are theme metrics.
 
 ### Margin checklist
 
@@ -252,3 +283,26 @@ Each phase ends with something working and its docs updated.
 | 8 | **Smart layer** | Next-priority card, planning suggestions |
 
 Phases 3–5 are independent of each other and can run in parallel or in any order.
+
+
+## 10. Reading alongside the tutor
+
+The shell reserves the final chat space in one layout change; the notebook's responsive layout
+and ruler settle at the new width. Padding is never animated, which avoids repeated text reflow,
+ruler passes and viewport measurements. The panel alone uses a short transform/opacity transition.
+Desktop uses a right column; under 900px the panel docks below the reading viewport. Chat sizes and
+motion are tokens, and reduced-motion skips the panel animation.
+`views/shell/SettingsDialog.tsx` is the single preferences surface (theme, shortcut, connection).
+Explicit fixed insets and auto margins center it independently of resets; short windows scroll its
+contents. Native dialog behavior supplies focus containment and restoration; settings remain SQLite-backed.
+
+Chat keeps follow intent in a ref, updated by the message list's scroll event. Streamed content only
+scrolls to the bottom when that intent is active (within 48px of the bottom), with instant updates
+before paint. Reading above pauses following through completion; returning to the bottom, sending,
+clearing or reopening resumes it. This does not alter notebook focus or provider/tool behavior.
+
+One `llm/viewport.ts` tracker per notebook batches scroll/resize/node-size measurements and exposes
+a synchronous refresh through the page bridge. Context only accepts positive, finite visibility
+scores and selection belonging to the current evaluation and visible screen. The chat reads a new
+snapshot immediately before every provider request; tool rounds do not reuse the pre-action closure.
+See [the tutor guide](guides/llm-setup.md#preferences-and-reading-context) for scoring and extension rules.

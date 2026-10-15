@@ -5,7 +5,7 @@
  */
 import { expect, test } from "@playwright/test";
 import { evaluationPages } from "./pages";
-import { openNotebook } from "./notebook";
+import { openNotebook, settle } from "./notebook";
 
 const SINK = 2;
 const WIDTHS = [1300, 900, 400];
@@ -93,6 +93,8 @@ for (const pg of evaluationPages()) {
         const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: scheme });
         const page = await ctx.newPage();
         await openNotebook(page, pg.url, { openAll: true });
+        await page.evaluate((mode) => document.documentElement.setAttribute("data-theme", mode), scheme);
+        await settle(page);
         const { u, res } = await page.evaluate(MEASURE);
         const want = u - SINK;
         const bad = (res as Hit[]).filter((x) => x[1] && Math.abs(x[2] - want) > 1.01 && Math.abs(x[2] - want + u) > 1.01);
@@ -103,4 +105,21 @@ for (const pg of evaluationPages()) {
       });
     }
   }
+}
+
+for (const scheme of SCHEMES) for (const width of [...WIDTHS, 1440, 1530]) {
+  test(`ruler with tutor · ${width}px ${scheme}`, async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: scheme });
+    const page = await ctx.newPage();
+    await openNotebook(page, "/s/_sample/c/algebra/e/parcial-1", { openAll: true });
+    await page.evaluate((mode) => document.documentElement.setAttribute("data-theme", mode), scheme);
+    await page.getByRole("button", { name: "Preguntar", exact: true }).click();
+    await expect(page.locator(".chat")).toBeVisible();
+    await settle(page);
+    const { u, res } = await page.evaluate(MEASURE);
+    const bad = (res as Hit[]).filter((x) => x[1] && Math.abs(x[2] - (u - SINK)) > 1.01 && Math.abs(x[2] + SINK) > 1.01);
+    expect(res.length).toBeGreaterThan(10);
+    expect(bad, `lines off the rule with tutor: ${JSON.stringify(bad.slice(0, 25))}`).toEqual([]);
+    await ctx.close();
+  });
 }

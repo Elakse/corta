@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { ChatRequest, LlmSelection, type LlmConfiguration } from "../../../shared/api";
 import { activeProvider, providerProfiles } from "../llm/providers";
+import { ChatError } from "../llm/images";
 import { validJson } from "../validate";
 import type { Db } from "../db/client";
 import { getSetting, setSetting } from "../db/settings";
@@ -45,7 +46,7 @@ export function llmRoutes(db: Db) {
         try {
           for await (const ev of p.stream(req, ctrl.signal)) await sse.writeSSE({ data: JSON.stringify(ev) });
         } catch (e) {
-          await sse.writeSSE({ data: JSON.stringify({ type: "error", message: e instanceof Error ? e.message : String(e) }) });
+          await sse.writeSSE({ data: JSON.stringify({ type: "error", message: e instanceof Error ? e.message : String(e), ...(e instanceof ChatError && e.code ? { code: e.code } : {}) }) });
         }
       });
     });

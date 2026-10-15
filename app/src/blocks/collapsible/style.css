@@ -10,7 +10,8 @@
 .sol-basis { font: 400 11.5px/1 var(--f-mono); color: var(--ink-soft); margin-left: 6px; }
 .sol-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s var(--ease); }
 .sol[data-open="true"] > .sol-body { grid-template-rows: 1fr; }
-.sol-body > div { overflow: hidden; min-height: 0; padding-left: var(--u); }
+.sol-body > div { overflow: hidden; min-height: 0; min-width: 0; padding-left: var(--u); }
+.sol[data-open="true"] > .sol-body > div { overflow: visible; }
 .sol-body > div::after { content: ""; display: block; height: var(--u); }
 .solved-row { height: calc(var(--u) * 2); display: flex; align-items: center; }
 .solved {

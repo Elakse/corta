@@ -24,6 +24,13 @@
   --color-code: var(--code);
   --color-thumb: var(--thumb);
   --color-thumb-hover: var(--thumb-hover);
+  --color-stage: var(--stage);
+  --color-stage-ink: var(--stage-ink);
+  --color-marker-yellow: var(--marker-yellow);
+  --color-marker-green: var(--marker-green);
+  --color-marker-pink: var(--marker-pink);
+  --color-marker-blue: var(--marker-blue);
+  --color-marker-orange: var(--marker-orange);
   --color-ev-class: var(--ev-class);
   --color-ev-midterm: var(--ev-midterm);
   --color-ev-retake: var(--ev-retake);

@@ -3,6 +3,9 @@ import { useUi } from "@/state/ui";
 import { kindRegistry } from "@/core/registry";
 import type { OvNode } from "./model";
 import { useSize } from "./useSize";
+import { hasLabelMath } from "@/core/markup/labels";
+import { SvgMathLabel } from "@/ui/MathText";
+import { fonts } from "@/theme";
 
 const ROW = 22;
 const COL = 190;
@@ -29,10 +32,10 @@ export function TreeView({ tree }: { tree: OvNode }) {
           {nodes.map((n) => (
             <g key={n.data.id} transform={`translate(${n.y},${n.x})`} className="tr-node" data-status={n.data.status} onClick={() => n.depth > 0 && scrollTo(n.data.id)}>
               <circle r={n.depth === 0 ? 6 : 4.5} />
-              <text x={9} dy="0.32em">
+              {hasLabelMath(n.data.title) ? <SvgMathLabel text={n.data.title} x={9} font={`500 12px ${fonts.display}`} color="var(--ink)" vertical="center" /> : <text x={9} dy="0.32em">
                 {n.depth > 0 && <tspan className="tr-glyph">{kindRegistry.get(n.data.kind)?.glyph} </tspan>}
                 {n.data.title.length > 34 ? `${n.data.title.slice(0, 33)}…` : n.data.title}
-              </text>
+              </text>}
             </g>
           ))}
         </g>

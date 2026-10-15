@@ -24,9 +24,9 @@ body:
                   view: { x: [-2, 6], y: [-3, 5] }
                   plots: [ { fn: "(x - 2) * (x - 2) - k * k" } ]
                   points:
-                    - { at: ["2 - k", 0], color: red, label: "λ₁" }
-                    - { at: ["2 + k", 0], color: red, label: "λ₂" }
-            - - slider: { var: k, min: 0, max: 3, step: 0.1, label: k }
+                    - { at: ["2 - k", 0], color: red, label: '$\lambda_1$' }
+                    - { at: ["2 + k", 0], color: red, label: '$\lambda_2$' }
+            - - slider: { var: k, min: 0, max: 3, step: 0.1, label: '$k$' }
               - text: 'Autovalores: $\lambda = 2 \pm {{k}}$'
               - callout:
                   variant: exam
@@ -42,7 +42,7 @@ body:
         - slider: { var: a, min: -1, max: 1, step: 0.05, label: a }
         - graph3d:
             surfaces: [ { z: "a * (x*x - y*y)", color: pen } ]
-            vectors: [ { to: [1, 1, 0], color: red, label: v } ]
+            vectors: [ { to: [1, 1, 0], color: red, label: '$v_1$' } ]
   - node:
       id: alg/p1/repr/metodo
       kind: method
@@ -62,8 +62,25 @@ body:
                   - diagram:
                       code: |
                         flowchart LR
-                          A["χ(λ) = det(A − λI)"] --> B[Raíces λ]
-                          B --> C["(A − λI)v = 0"]
+                          A["$\chi(\lambda) = \det(A-\lambda I)$"] -->|"$\lambda_1$"| B["Raíces $\lambda$"]
+                          B --> C["$(A-\lambda I)v = 0$"]
                           C --> D[Autovectores]
-        - toggle: { var: showAxes, label: Mostrar ejes }
-        - input: { var: k, label: "k (también lo mueve el slider)", type: number, min: 0, max: 3, step: 0.1 }
+        - toggle: { var: showAxes, label: 'Mostrar eje $x$' }
+        - input: { var: k, label: "$k$ (también lo mueve el slider)", type: number, min: 0, max: 3, step: 0.1 }
+  - node:
+      id: alg/p1/repr/math-labels
+      kind: example
+      title: 'Fórmulas con $x_1$'
+      sources: [{ basis: generated }]
+      body:
+        - diagram:
+            code: |
+              flowchart LR
+                A["Dato $F_Z$<br/>$\frac{a}{b}$"] -->|"$P(A\mid B)$"| B["$\sum_{i=1}^{n}x_i$"]
+        - diagram:
+            code: |
+              flowchart LR
+                subgraph test
+                  A["$x_1$"] -->|"$\frac{1}{2}$"| B["$x_2$"]
+                end
+        - canvas: { module: math-labels, height: 4 }

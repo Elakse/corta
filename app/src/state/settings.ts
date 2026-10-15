@@ -8,7 +8,13 @@ interface SettingsStore {
   loaded: boolean;
   load: () => Promise<void>;
   set: (key: string, value: unknown) => void;
+  /** Updates the value now and saves it once the changes stop (sliders, drags). */
+  setDebounced: (key: string, value: unknown, delay?: number) => void;
+  /** Saves a pending debounced value immediately (when a dialog closes). */
+  flush: (key: string) => void;
 }
+
+const pending = new Map<string, ReturnType<typeof setTimeout>>();
 
 export const useSettings = create<SettingsStore>((set, get) => ({
   values: {},
@@ -23,14 +29,28 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     }
   },
   set(key, value) {
+    clearTimeout(pending.get(key));
+    pending.delete(key);
     set({ values: { ...get().values, [key]: value } });
     if (key === "theme") setThemeMode(value as ThemeMode);
     api.settings.set(key, value).catch(() => undefined);
+  },
+  setDebounced(key, value, delay = 350) {
+    clearTimeout(pending.get(key));
+    set({ values: { ...get().values, [key]: value } });
+    pending.set(key, setTimeout(() => get().flush(key), delay));
+  },
+  flush(key) {
+    const timer = pending.get(key);
+    if (timer === undefined) return;
+    clearTimeout(timer);
+    pending.delete(key);
+    api.settings.set(key, get().values[key]).catch(() => undefined);
   },
 }));
 
 export function useSetting<T>(key: string, fallback: T): [T, (v: T) => void] {
   const value = useSettings((s) => s.values[key]) as T | undefined;
   const setter = useSettings((s) => s.set);
-  return [value ?? fallback, (v: T) => setter(key, v)];
+  return [value === undefined ? fallback : value, (v: T) => setter(key, v)];
 }

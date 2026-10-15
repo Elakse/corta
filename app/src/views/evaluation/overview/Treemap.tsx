@@ -4,6 +4,7 @@ import { useUi } from "@/state/ui";
 import { kindRegistry } from "@/core/registry";
 import type { OvNode } from "./model";
 import { useSize } from "./useSize";
+import { MathText } from "@/ui/MathText";
 
 /** Disk-usage style map: area = weight, fill = progress. Two levels (topics → their parts). */
 export function Treemap({ tree }: { tree: OvNode }) {
@@ -51,7 +52,7 @@ export function Treemap({ tree }: { tree: OvNode }) {
             {(topic || (w > 54 && h > 30)) && (
               <span className="tm-label">
                 {!topic && <i>{kindRegistry.get(d.data.kind)?.glyph}</i>}
-                {d.data.title}
+                <MathText text={d.data.title} />
               </span>
             )}
             {topic && <span className="tm-pct">{Math.round(p * 100)}%</span>}

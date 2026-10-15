@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { ChatRequest, ChatStreamEvent } from "../../../../shared/api";
 import type { LlmProvider } from "../provider";
+import { ChatError, hasImages, IMAGES_UNSUPPORTED, looksLikeImageRejection } from "../images";
 
 export interface ChatCompletionsProfile {
   id: string;
@@ -14,9 +15,11 @@ export interface ChatCompletionsProfile {
   error: (status: number) => string;
 }
 
+type ContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
+
 interface ChatCompletionMessage {
   role: "system" | "user" | "assistant" | "tool";
-  content: string | null;
+  content: string | ContentPart[] | null;
   tool_call_id?: string;
   tool_calls?: { id: string; type: "function"; function: { name: string; arguments: string } }[];
 }
@@ -36,6 +39,16 @@ export function chatCompletionMessages(req: ChatRequest): ChatCompletionMessage[
     // Tool results precede any new user text in the next round.
     for (const b of msg.content) {
       if (b.type === "tool_result") out.push({ role: "tool", tool_call_id: b.tool_use_id, content: b.is_error ? `Error: ${b.content}` : b.content });
+    }
+    const images = msg.content.filter((b) => b.type === "image");
+    if (images.length) {
+      // Multimodal turn: OpenAI-style content parts, images as base64 data URLs.
+      const parts: ContentPart[] = [
+        ...(text ? [{ type: "text" as const, text }] : []),
+        ...images.map((b) => ({ type: "image_url" as const, image_url: { url: `data:${b.mediaType};base64,${b.data}` } })),
+      ];
+      out.push({ role: msg.role, content: parts });
+      continue;
     }
     if (text || calls.length) out.push({ role: msg.role, content: text || null, ...(calls.length ? { tool_calls: calls } : {}) });
   }
@@ -106,7 +119,10 @@ export function createChatCompletionsProvider(profile: ChatCompletionsProfile): 
         }),
       });
       if (!response.ok) {
-        await response.body?.cancel();
+        // A model that can't take images says so in its error body; read it only to classify, never to forward.
+        const rejected = hasImages(req) && looksLikeImageRejection(response.status, await response.text().catch(() => ""));
+        await response.body?.cancel().catch(() => undefined);
+        if (rejected) throw new ChatError(IMAGES_UNSUPPORTED, "images_unsupported");
         // Never forward raw upstream errors: they can contain request data or credentials.
         throw new Error(profile.error(response.status));
       }

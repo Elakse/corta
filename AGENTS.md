@@ -8,6 +8,8 @@ Content is YAML written by a generation skill; user state lives in SQLite; stabl
 - The *what*: [`docs/study_platform_design.md`](docs/study_platform_design.md) · the *how*: [`docs/architecture.md`](docs/architecture.md)
 - Content YAML reference + block catalog: [`docs/content-format.md`](docs/content-format.md)
 - Every implementation decision: [`docs/decisions-log.md`](docs/decisions-log.md)
+- New class/video/PDF intake and approval-gated updates: [`skills/course-material-intake/SKILL.md`](skills/course-material-intake/SKILL.md)
+- Source material on this computer: `../Facu/` (`<Documents>\Facu`), with PDP in `../Facu/PDP/`. This path is machine-specific; Alejo will specify it on other computers. See [`docs/guides/local-materials.md`](docs/guides/local-materials.md).
 
 ## Run
 
@@ -60,13 +62,42 @@ google-calendar-setup · llm-setup · add-llm-provider · run-tests
 | 1 | Content core (registries, loader, ID graph), v1 blocks, notebook page, ruler + ruler test, sample course, catalog | ✅ done |
 | 2 | State (Hono + SQLite), progress engine, margin checklist | ✅ done |
 | 3 | Shared variables, visual/control/practice blocks, graphics kit, canvas | ✅ done |
-| 4 | Navigation: evaluation overview (treemap/graph/tree), course page, semester masonry | ✅ done |
+| 4 | Navigation: evaluation overview (treemap/graph/tree), course page (compact info column, subtle evaluation accents), semester masonry | ✅ done |
 | 5 | Calendar, day panel, study sessions, next priority, Google Calendar push | ✅ done |
-| 6 | Generation skill `skills/build-course/` | ✅ done |
-| 7 | LLM side panel | ✅ done — reusable adapters, provider/model selectors, saved per-provider choices; Go activation needs a local key |
+| 6 | Generation skill `skills/build-course/` + incremental intake `skills/course-material-intake/` | ✅ done — new material is summarized and reviewed; course content changes require approval of concrete items |
+| 7 | LLM side panel | ✅ done — reusable adapters, centered Settings with per-evaluation paper choice, saved provider/model + shortcut choices, reader-controlled streaming, responsive chat using spare desk space before narrowing the notebook + live reading context; Go activation needs a local key; chat images (files, paste, webcam photo; ≤3) + camera calibration dialog (see `docs/guides/camera.md`) |
 
 ## Public distribution
 
 Course files and source material live locally under ignored `content/`. This repository ships no study
 data. Synthetic test fixtures are in `tests/fixtures/`, enabled only in browser tests. Local prototypes
 and agent output folders are excluded. See `docs/guides/publish-empty-app.md` before publishing.
+
+Local intake status (2026-10-15): PDP's course info includes the official schedule, staff, regime,
+TPs and evaluation dates. P1 now includes an independently reviewed supplement from 20 P1/transversal
+channel videos; see `content/semesters/2026-C2/courses/pdp/processed/transcript-course-review.md`.
+The P2 course has no notebook yet. Eight P2-related videos are inventoried and summarized, but P2
+course changes are deferred until Alejo requests that pass.
+Proba (2026-10-14): course info + Parcial 1 built (topics 0–8). Topic 8 (Normal/TCL) is provisional until the
+professor publishes its class; guide exercises are limited to the prioritized ones (! and STOP). See
+`content/semesters/2026-C2/courses/proba/processed/notes.md`.
+
+Proba graphics (2026-10-14): rendering/layout reviewed across all 15 canvases and 7 diagrams;
+exact disk/triangle supports, smooth continuous density/area paths, readable labels/markers and mobile
+diagram reflow. Review full-size screenshots, including clipping by open solution containers; automated
+bounds alone missed jagged edges in the first pass. Mathematical content and stable IDs are preserved.
+
+Highlighter (2026-10-14): on mouse/pen screens the notebook uses Corta's own selection drawn as a marker
+(`app/src/core/highlighter/`, prototype in `prototypes/highlighter-selection/`); no browser popups. Color in Settings.
+Checks: typecheck, unit tests, `selection-menu`, `app`, `chat-ui` and `ruler` specs pass on a Linux copy.
+
+Selection menu (2026-10-14): selecting notebook text offers Explicar / Fuente (registry in `app/src/llm/selection/`);
+Fuente makes the tutor read the original material (`/api/sources`, tools `searchSources`/`readSourcePage`) and
+cite it with chips that open the file at the page. Interactive blocks are unselectable (`interactive: true`).
+Checks: typecheck, unit tests and `tests/selection-menu.spec.ts` pass on a Linux copy; `graphics.spec.ts` and
+`math-labels.spec.ts` fail there with or without this change (WebGL/canvas label clipping in that sandbox).
+
+Notebook notes (2026-10-14): red pencil notes reserve normal-flow space beside the heading, wrapping
+to their own row when needed. Arrows and rotation are removed; body blocks keep the full writing
+width and notes stay visible on phones. Alejo requested to do the visual and overlap reviews himself;
+no tests or browser reviews were run for this change.

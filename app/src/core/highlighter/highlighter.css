@@ -1,0 +1,18 @@
+/* Highlighter selection. The browser's own selection is off on the sheet for mouse/pen, so its popups never show. */
+@media (pointer: fine) {
+  .hl-root, .hl-root * { -webkit-user-select: none; user-select: none; }
+  .hl-root { cursor: text; }
+  .hl-root :is(input, textarea, [contenteditable]) { -webkit-user-select: auto; user-select: auto; }
+  .hl-root :is(button, a, label, summary, [role="tab"], [data-interactive], [data-interactive] *) { cursor: revert; }
+}
+.hl-ink {
+  position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 2;
+  mix-blend-mode: var(--marker-blend); transition: opacity .18s var(--ease);
+}
+.hl-ink.hl-fading { opacity: 0; }
+.hl-band { fill: var(--marker); }
+.hl-edge { fill: none; stroke: var(--marker); stroke-width: 2.2; opacity: var(--marker-edge); filter: saturate(1.6) brightness(.92); }
+.hl-swipe { animation: hl-swipe .24s var(--ease) both; }
+@keyframes hl-swipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@media (prefers-reduced-motion: reduce) { .hl-swipe { animation: none; } .hl-ink { transition: none; } }
+@media print { .hl-ink { display: none; } }

@@ -7,6 +7,7 @@ import { walkBlocks } from "@/core/content/build";
 import { blockRegistry, kindLabel } from "@/core/registry";
 import { evaluationTree, progress, status, toPNode, type Flags } from "@/core/progress";
 import type { VarValue } from "@/core/content/schemas";
+import { routeOf } from "./route";
 
 export interface ContextInput {
   graph: ContentGraph;
@@ -24,10 +25,6 @@ export interface ContextSnapshot {
   text: string;
 }
 
-const route = (path: string) => {
-  const m = /^\/s\/([^/]+)(?:\/c\/([^/]+))?(?:\/e\/([^/]+))?/.exec(path);
-  return { semester: m?.[1], course: m?.[2], evaluation: m?.[3] };
-};
 
 function describeNode(n: ContentNode, vars: Record<string, VarValue>, course: Course, language: string, done: Flags): string {
   const lines: string[] = [];
@@ -38,7 +35,7 @@ function describeNode(n: ContentNode, vars: Record<string, VarValue>, course: Co
     if (def) lines.push(`- ${def.describe(props, { vars })}`);
   });
   if (n.sources.length)
-    lines.push(`Sources: ${n.sources.map((s) => `${(s.ref && course.sources.get(s.ref)?.title) || s.ref || "generated"}${s.page ? ` p.${s.page}` : s.locator ? ` ${s.locator}` : ""} [${s.basis}]`).join("; ")}`);
+    lines.push(`Sources: ${n.sources.map((s) => `${(s.ref && course.sources.get(s.ref)?.title) || s.ref || "generated"}${s.ref ? ` (ref ${s.ref})` : ""}${s.page ? ` p.${s.page}` : s.locator ? ` ${s.locator}` : ""} [${s.basis}]`).join("; ")}`);
   if (n.relations.length) lines.push(`Relations: ${n.relations.map((r) => `${r.type} → ${r.target}`).join(", ")}`);
   if (n.children.length) lines.push(`Children: ${n.children.map((c) => `${c.id} (${c.kind})`).join(", ")}`);
   return lines.join("\n");
@@ -46,7 +43,7 @@ function describeNode(n: ContentNode, vars: Record<string, VarValue>, course: Co
 
 export function buildContext(input: ContextInput): ContextSnapshot {
   const { graph, done } = input;
-  const r = route(input.path);
+  const r = routeOf(input.path);
   const out: string[] = [`Today: ${input.today}`];
   const course: Course | undefined = r.course ? graph.courses.get(`${r.semester}/${r.course}`) : undefined;
   const ev: Evaluation | undefined = r.evaluation ? graph.evaluations.get(`${r.semester}/${r.course}/${r.evaluation}`) : undefined;
@@ -70,12 +67,12 @@ export function buildContext(input: ContextInput): ContextSnapshot {
   out.push(`Topics: ${ev.content.topics.map((t) => `${t.title} [${t.id}] ${Math.round(progress(toPNode(t), done) * 100)}%`).join("; ")}`);
 
   const visibleIds = Object.entries(input.visible)
-    .filter(([id]) => graph.nodes.get(id)?.evaluationKey === ev.key)
+    .filter(([id, score]) => score > 0 && Number.isFinite(score) && graph.nodes.get(id)?.evaluationKey === ev.key)
     .sort((a, b) => b[1] - a[1])
     .map(([id]) => id);
-  // "this" = the selected node, else the most visible non-container leaf-ish node
+  // Explicit focus is meaningful only while it is on this screen, in this evaluation.
   const focusId =
-    (input.selected && graph.nodes.has(input.selected) ? input.selected : null) ??
+    (input.selected && visibleIds.includes(input.selected) ? input.selected : null) ??
     visibleIds.find((id) => !graph.nodes.get(id)!.node.container) ??
     visibleIds[0] ??
     null;
@@ -95,7 +92,11 @@ export function systemPrompt(context: string, language: string): string {
     "Stay faithful to the teaching staff: use their terminology and notation exactly as in the context. Say so when something goes beyond the course material.",
     "Math: write LaTeX with $…$ inline and $$…$$ on its own line for tall formulas.",
     "\"This\" / \"esto\" means the node under \"This\" below. You can act on the page with the tools (navigate to a node, set a page variable, open hidden proofs/solutions); use them when it helps, then explain.",
+    "The current screen snapshot is authoritative when the user scrolls or navigates. Do not reuse an earlier screen as the meaning of 'this'. If no focused node is shown, ask which part they mean.",
     "If he asks for an exercise's solution, prefer hints first unless he explicitly wants the full solution.",
+    "Course material: searchSources and readSourcePage read the original files (classes, guides, past exams). Use them to check where something comes from instead of guessing.",
+    "Cite the original material with a source chip: [[source:<ref>|<page>]] (page optional), e.g. [[source:clase-03|12]]. It renders as a small link that opens the file at that page. Only use refs from the context or from tool results.",
+    "He may attach up to 3 images (often a photo of his handwritten sheet on the desk, taken with the webcam, or a screenshot). Look at them closely and relate them to the course; when something is hard to read, say so instead of guessing.",
     "\n# Current screen\n" + context,
   ].join("\n");
 }

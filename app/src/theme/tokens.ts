@@ -12,6 +12,10 @@ export const colorTokens = [
   "surface", "surface-2", "line", "glow",
   // inset surfaces and scrollbar handles
   "code", "thumb", "thumb-hover",
+  // camera preview: a dark stage in both themes, and the ink drawn on top of it
+  "stage", "stage-ink",
+  // highlighter inks (the reader picks one; see core/highlighter)
+  "marker-yellow", "marker-green", "marker-pink", "marker-blue", "marker-orange",
   // calendar event types
   "ev-class", "ev-midterm", "ev-retake", "ev-final", "ev-submission", "ev-session", "ev-holiday",
 ] as const;
@@ -41,6 +45,13 @@ export const light: Palette = {
   code: "#f1eff5",
   thumb: "rgba(28, 34, 48, .26)",
   "thumb-hover": "rgba(28, 34, 48, .5)",
+  stage: "#14161c",
+  "stage-ink": "#f4f5f8",
+  "marker-yellow": "#ffe14d",
+  "marker-green": "#9be58a",
+  "marker-pink": "#ffa3c8",
+  "marker-blue": "#8fd3ff",
+  "marker-orange": "#ffbe6b",
   "ev-class": "#5b6b8f",
   "ev-midterm": "#d9480f",
   "ev-retake": "#c27c0e",
@@ -73,6 +84,13 @@ export const dark: Palette = {
   code: "#14161a",
   thumb: "rgba(228, 231, 238, .26)",
   "thumb-hover": "rgba(228, 231, 238, .5)",
+  stage: "#0b0c10",
+  "stage-ink": "#f4f5f8",
+  "marker-yellow": "#9a8312",
+  "marker-green": "#2c6e33",
+  "marker-pink": "#84305a",
+  "marker-blue": "#1b5f86",
+  "marker-orange": "#8a4f10",
   "ev-class": "#8fa0c8",
   "ev-midterm": "#ff8a4c",
   "ev-retake": "#f0b44c",
@@ -81,6 +99,12 @@ export const dark: Palette = {
   "ev-session": "#5fcf87",
   "ev-holiday": "#7d8390",
 };
+
+/** How marker ink meets the paper: multiplied on light paper, screened (a glow) on dark paper. */
+export const markerInk = {
+  light: { blend: "multiply", edge: 0.55 },
+  dark: { blend: "screen", edge: 0.8 },
+} as const;
 
 export const fonts = {
   body: '"Literata Variable", "Literata", Georgia, "Times New Roman", serif',
@@ -92,10 +116,18 @@ export type FontToken = keyof typeof fonts;
 
 /** Notebook metrics. `u` is one ruled line (= one grid cell). Phone values apply under `phoneMaxWidth`. */
 export const metrics = {
+  notebookWidth: 1040,
+  deskGutter: 16,
+  chatGap: 12,
+  chatInset: 12,
+  // Give spare desk space to chat before narrowing the notebook; 100% excludes the scrollbar.
+  chatWidth: "clamp(320px, min(32vw, calc(100% - var(--notebook-width) - var(--desk-gutter) - var(--chat-gap) - var(--chat-inset))), 460px)",
+  chatDockHeight: "min(44dvh, 400px)",
   u: 30,
   margin: 128,
   checkbox: 19,
   sink: 2, // px the text baseline sits above a rule's ink
+  pencilNote: { width: 140, fontSize: 19 },
   phone: { maxWidth: 720, u: 28, margin: 76, checkbox: 15 },
   /** checkbox x positions (px from the sheet's left edge) per nesting depth */
   checkColumns: [62, 84, 106],

@@ -242,6 +242,8 @@ The semester's courses as **large cards in a Masonry layout**, sized by how much
 1. **General info:** name, code, teaching staff, professors, contacts, rooms, campuses, class days and times, modality, official links, campus portal, repos, schedule, bibliography, admin info. Time-related info syncs with the calendar.
 2. **What it takes to pass:** the course's evaluation elements (Midterm 1, Midterm 2, Retake, Assignment, Final assignment, Final…), only the ones that apply.
 
+On wide screens, the evaluation list takes the flexible main column; general info stays in a narrow column (up to 360 px). Evaluation cards show their type color in the date tile, kind label and a subtle outline, without a vertical color stripe. On narrower screens, general info moves below the evaluations.
+
 ### Evaluation page (e.g. a midterm)
 
 Takes the full screen; a **long continuous scroll** containing everything needed to study it (performance handled with progressive rendering / virtualization if needed).

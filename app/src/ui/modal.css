@@ -1,0 +1,11 @@
+/* Native modal shell shared by dialogs that are not Settings. Tokens only. */
+.modal {
+  position: fixed; inset: 0; margin: auto; padding: 0; overflow: hidden;
+  width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px);
+  border: 1px solid var(--line); border-radius: var(--r-xl); color: var(--ink); background: var(--paper);
+  box-shadow: 0 30px 80px var(--shadow);
+}
+.modal[open] { animation: modal-in .25s var(--ease); }
+.modal::backdrop { background: color-mix(in srgb, var(--desk) 55%, transparent); backdrop-filter: blur(8px); }
+@keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+@media (prefers-reduced-motion: reduce) { .modal[open] { animation: none; } }

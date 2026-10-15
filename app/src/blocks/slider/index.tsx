@@ -4,6 +4,7 @@ import { useId } from "react";
 import { defineBlock } from "@/core/registry";
 import { useVar } from "@/core/vars";
 import { formatVar } from "@/core/markup";
+import { MathText } from "@/ui/MathText";
 
 const schema = z
   .object({
@@ -25,11 +26,11 @@ function SliderView({ props }: { props: Props }) {
   const pct = ((value - props.min) / (props.max - props.min)) * 100;
   return (
     <div className="ctl ctl-slider">
-      <label htmlFor={id}>{props.label ?? props.var}</label>
+      <label htmlFor={id}><MathText text={props.label ?? props.var} /></label>
       <input id={id} type="range" min={props.min} max={props.max} step={props.step} value={value} style={{ ["--pct" as string]: `${pct}%` }} onChange={(e) => set(Number(e.target.value))} />
       <output htmlFor={id}>
         {formatVar(value)}
-        {props.unit}
+        <MathText text={props.unit} />
       </output>
     </div>
   );
@@ -39,10 +40,12 @@ export default defineBlock<Props>({
   type: "slider",
   version: 1,
   group: "control",
+  interactive: true,
   schema: schema as unknown as z.ZodType<Props>,
   component: SliderView,
   ruler: "snap",
   writes: (p) => [p.var],
+  markup: (p) => [p.label ?? "", p.unit],
   size: () => 0,
   describe: (p, s) => `[slider ${p.label ?? p.var} = ${formatVar(s.vars[p.var])}${p.unit} (range ${p.min}..${p.max})]`,
   docs: `A slider that writes a numeric page variable. Declare the variable (with its initial value) in a node's \`vars\`.

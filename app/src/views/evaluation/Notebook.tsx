@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { ContentNode, Course, Evaluation, PaperType } from "@/core/content";
 import { walkNodes } from "@/core/content";
 import { useRuler } from "@/core/ruler";
@@ -7,14 +7,18 @@ import { useSetting } from "@/state/settings";
 import { useTreeProgress } from "@/state/node-progress";
 import { useUi } from "@/state/ui";
 import { useVarsStore } from "@/core/vars";
-import { pageBridge } from "@/llm/page-bridge";
+import { pageBridge, usePageBridge } from "@/llm/page-bridge";
+import { createViewportTracker } from "@/llm/viewport";
+import { SelectionMenu } from "@/llm/selection/SelectionMenu";
+import { selectionText } from "@/llm/selection/read";
+import { DEFAULT_MARKER, markerVar, useHighlighter, type MarkerColor } from "@/core/highlighter";
 import { useLocale } from "@/i18n";
 import { fmtNotebookDate } from "../format";
 import { PageContext, type PageContextValue } from "./page-context";
 import { MarginLayer } from "./MarginLayer";
-import { PaperSwitch } from "./PaperSwitch";
 import { TopicSection } from "./TopicSection";
 import { Overview } from "./overview/Overview";
+import { MathText } from "@/ui/MathText";
 
 const EAGER_TOPICS = 2;
 
@@ -28,11 +32,14 @@ function estimateLines(topic: ContentNode): number {
 export function Notebook({ course, evaluation }: { course: Course; evaluation: Evaluation }) {
   const content = evaluation.content!;
   const locale = useLocale();
-  const [paper, setPaper] = useSetting<PaperType>(`paper:${evaluation.key}`, content.paper);
+  const [paper] = useSetting<PaperType>(`paper:${evaluation.key}`, content.paper);
   const sheetRef = useRef<HTMLElement>(null);
   const frameRef = useRef<HTMLElement>(null);
   const flowRef = useRef<HTMLDivElement>(null);
   const ruler = useRuler(frameRef, flowRef);
+  const inkRef = useRef<SVGSVGElement>(null);
+  const [marker] = useSetting<MarkerColor>("highlighter.color", DEFAULT_MARKER);
+  useHighlighter(flowRef, inkRef, selectionText);
   const vars = useVarsStore();
   useEffect(() => {
     pageBridge.set(vars, evaluation.key);
@@ -52,24 +59,18 @@ export function Notebook({ course, evaluation }: { course: Course; evaluation: E
 
   // ---- node registry + visibility (for the LLM context and the header's current topic)
   const elements = useRef(new Map<string, HTMLElement>()).current;
-  const io = useMemo(
-    () =>
-      new IntersectionObserver(
-        (entries) => {
-          const setVisible = useUi.getState().setVisible;
-          for (const e of entries) setVisible((e.target as HTMLElement).dataset.node!, e.isIntersecting ? Math.round(e.intersectionRatio * 100) / 100 : 0);
-        },
-        { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] },
-      ),
-    [],
-  );
-  useEffect(
-    () => () => {
-      io.disconnect();
-      useUi.setState({ visible: {}, selected: null });
-    },
-    [io],
-  );
+  const tracker = useRef<ReturnType<typeof createViewportTracker> | null>(null);
+  useEffect(() => {
+    const observer = createViewportTracker(sheetRef.current!.closest(".app-main") as HTMLElement, flowRef.current!);
+    tracker.current = observer;
+    for (const [id, el] of elements) observer.register(id, el);
+    usePageBridge.setState({ refresh: observer.measure });
+    return () => {
+      observer.disconnect();
+      tracker.current = null;
+      usePageBridge.setState({ refresh: null });
+    };
+  }, [elements]);
   const page: PageContextValue = useMemo(
     () => ({
       course,
@@ -79,15 +80,15 @@ export function Notebook({ course, evaluation }: { course: Course; evaluation: E
       registerNode: (id, el) => {
         if (!el) return () => undefined;
         elements.set(id, el);
-        io.observe(el);
+        tracker.current?.register(id, el);
         return () => {
-          io.unobserve(el);
+          tracker.current?.unregister(id, el);
           if (elements.get(id) === el) elements.delete(id);
         };
       },
       nodeElement: (id) => elements.get(id),
     }),
-    [course, evaluation, content.dir, elements, io],
+    [course, evaluation, content.dir, elements],
   );
 
   // ---- scroll requests (overview clicks, LLM navigateTo)
@@ -104,6 +105,17 @@ export function Notebook({ course, evaluation }: { course: Course; evaluation: E
     const idx = content.topics.findIndex((t) => t.id === topic);
     mount(content.topics.slice(0, idx + 1).map((t) => t.id));
     let tries = 0;
+    let frame = 0;
+    let lastY = window.scrollY;
+    let stable = 0;
+    const deadline = performance.now() + 5000;
+    const focusWhenVisible = () => {
+      tracker.current?.measure();
+      stable = useUi.getState().visible[scrollTarget.id] && Math.abs(window.scrollY - lastY) < 1 ? stable + 1 : 0;
+      lastY = window.scrollY;
+      if (stable >= 3) useUi.getState().select(scrollTarget.id);
+      else if (performance.now() < deadline) frame = requestAnimationFrame(focusWhenVisible);
+    };
     const go = () => {
       const el = elements.get(scrollTarget.id);
       if (el) {
@@ -111,10 +123,18 @@ export function Notebook({ course, evaluation }: { course: Course; evaluation: E
         el.classList.remove("flash");
         void el.offsetWidth;
         el.classList.add("flash");
-        useUi.getState().select(scrollTarget.id);
-      } else if (tries++ < 30) requestAnimationFrame(go);
+        frame = requestAnimationFrame(focusWhenVisible);
+      } else if (tries++ < 30) frame = requestAnimationFrame(go);
     };
-    requestAnimationFrame(go);
+    frame = requestAnimationFrame(go);
+    const cancel = () => cancelAnimationFrame(frame);
+    window.addEventListener("wheel", cancel, { passive: true });
+    window.addEventListener("touchmove", cancel, { passive: true });
+    return () => {
+      cancel();
+      window.removeEventListener("wheel", cancel);
+      window.removeEventListener("touchmove", cancel);
+    };
   }, [scrollTarget, graphNodes, content.topics, mount, elements]);
 
   // ---- header
@@ -139,9 +159,6 @@ export function Notebook({ course, evaluation }: { course: Course; evaluation: E
   return (
     <PageContext.Provider value={page}>
       <div className="desk-page">
-        <div className="desk-bar">
-          <PaperSwitch value={paper} onChange={setPaper} />
-        </div>
         <Overview evaluation={evaluation} />
         <article className="sheet" data-paper={paper} ref={sheetRef}>
           <div className="spiral" aria-hidden="true" />
@@ -152,7 +169,7 @@ export function Notebook({ course, evaluation }: { course: Course; evaluation: E
               <div className="course">
                 {course.data.name}&nbsp;<span>· {evaluation.meta.title}</span>
               </div>
-              <div className="topic">{currentTopic ? `${topicNumber(currentTopic, curIdx)} — ${currentTopic.title ?? ""}` : content.title}</div>
+              <div className="topic"><MathText text={currentTopic ? `${topicNumber(currentTopic, curIdx)} — ${currentTopic.title ?? ""}` : content.title} /></div>
             </div>
             <div className="date">
               <div className="d">{evaluation.meta.date ? fmtNotebookDate(evaluation.meta.date, locale) : "—"}</div>
@@ -165,13 +182,15 @@ export function Notebook({ course, evaluation }: { course: Course; evaluation: E
             </div>
           </header>
           <section className="frame" ref={frameRef}>
-            <div className="flow" ref={flowRef}>
+            <div className="flow hl-root" ref={flowRef}>
               {content.topics.map((t, i) => (
                 <TopicSection key={t.id} topic={t} number={topicNumber(t, i)} mounted={mounted.has(t.id)} onNear={() => mount([t.id])} estimateLines={estimateLines(t)} />
               ))}
             </div>
+            <svg className="hl-ink" ref={inkRef} aria-hidden="true" style={{ "--marker": markerVar(marker) } as CSSProperties} />
           </section>
         </article>
+        <SelectionMenu />
       </div>
     </PageContext.Provider>
   );

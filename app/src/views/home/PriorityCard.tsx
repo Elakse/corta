@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { Link } from "react-router";
-import { ArrowRight } from "lucide-react";
 import { useGraph } from "@/core/content";
 import { DEFAULT_STRATEGY, strategyRegistry } from "@/priority";
 import { useProgress } from "@/state/progress";
@@ -34,7 +33,7 @@ export function PriorityCard() {
   const course = graph.courses.get(top.evaluationKey.split("/").slice(0, 2).join("/"))!;
   const href = ev.content ? evaluationUrl(ev) : courseUrl(course);
   return (
-    <section className="prio-card">
+    <Link to={href} className="prio-card home-card-link" aria-label={`${t("priority.go")}: ${ev.meta.title}`}>
       <div className="prio-glow" aria-hidden="true" />
       <div className="eyebrow">{t("home.next")}</div>
       <div className="prio-body">
@@ -58,9 +57,6 @@ export function PriorityCard() {
           <i style={{ width: `${(1 - top.remaining) * 100}%` }} />
         </div>
       )}
-      <Link to={href} className="prio-go">
-        {t("priority.go")} <ArrowRight size={17} />
-      </Link>
-    </section>
+    </Link>
   );
 }

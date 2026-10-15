@@ -9,6 +9,8 @@ test.beforeEach(async ({ request }) => {
   // start every test from a clean slate (only the e2e DB)
   const { done } = (await (await request.get("/api/progress")).json()) as { done: string[] };
   if (done.length) await request.post("/api/progress", { data: { unset: done } });
+  await request.put("/api/settings/chat.shortcut", { data: { value: { key: "j", primary: true, alt: false, shift: false } } });
+  await request.put("/api/settings/theme", { data: { value: "system" } });
 });
 
 test("nested checklist: parent sets subtree, child makes parent partial, persists across reloads", async ({ page }) => {
@@ -61,12 +63,17 @@ test("overview: clicking a treemap cell scrolls to and selects the node", async 
 
 test("paper type switch persists per evaluation", async ({ page }) => {
   await openNotebook(page, EVAL);
-  await page.getByRole("button", { name: "Cuadriculada" }).click();
+  await expect(page.locator(".desk-page").getByRole("button", { name: "Cuadriculada" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Configuración", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Cuadriculada", exact: true }).click();
   await expect(page.locator(".sheet")).toHaveAttribute("data-paper", "grid");
   await page.waitForTimeout(300);
   await page.reload();
   await expect(page.locator(".sheet")).toHaveAttribute("data-paper", "grid");
-  await page.getByRole("button", { name: "Rayada" }).click();
+  await page.getByRole("button", { name: "Configuración", exact: true }).click();
+  await expect(page.getByRole("dialog").getByRole("button", { name: "Cuadriculada", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("dialog").getByRole("button", { name: "Rayada", exact: true }).click();
+  await expect(page.locator(".sheet")).toHaveAttribute("data-paper", "ruled");
 });
 
 test("home: semester card, priority card, calendar with classes; plan and delete a study session", async ({ page }) => {
@@ -115,9 +122,9 @@ test("LLM connection: switching remembers each model and survives reload", async
   await page.goto("/");
   const initial = await (await page.request.get("/api/llm/configuration")).json();
   try {
-    await page.getByRole("button", { name: /Preguntar/ }).click();
-    const provider = page.locator(".chat-connection select");
-    const model = page.locator(".chat-connection input");
+    await page.getByRole("button", { name: "Configuración" }).click();
+    const provider = page.getByLabel("Proveedor del tutor");
+    const model = page.getByLabel("Modelo del tutor");
     await expect(provider).toBeVisible();
     await provider.selectOption("opencode-go");
     await expect(model).toBeEnabled();
@@ -129,7 +136,7 @@ test("LLM connection: switching remembers each model and survives reload", async
     await provider.selectOption("opencode-go");
     await expect(model).toHaveValue("deepseek-v4-flash");
     await page.reload();
-    await page.getByRole("button", { name: /Preguntar/ }).click();
+    await page.getByRole("button", { name: "Configuración" }).click();
     await expect(provider).toHaveValue("opencode-go");
     await expect(model).toHaveValue("deepseek-v4-flash");
   } finally {
@@ -140,4 +147,129 @@ test("LLM connection: switching remembers each model and survives reload", async
 test("unknown routes show a friendly not-found", async ({ page }) => {
   await page.goto("/s/nope/c/nada");
   await expect(page.locator(".hand-note")).toBeVisible();
+});
+
+
+test("home card bodies navigate, while course links keep their own destination", async ({ page }) => {
+  await page.goto("/");
+  const semesterUrl = await page.locator(".sem-title").getAttribute("href");
+  await page.locator(".sem-card").click({ position: { x: 12, y: 12 } });
+  await expect(page).toHaveURL(new RegExp(`${semesterUrl}$`));
+  await page.goto("/");
+  const courseUrl = await page.locator(".sc-course").first().getAttribute("href");
+  await page.locator(".sc-course").first().click();
+  await expect(page).toHaveURL(new RegExp(`${courseUrl}$`));
+  await page.goto("/");
+  const priority = page.locator("a.prio-card");
+  const priorityUrl = await priority.getAttribute("href");
+  await expect(page.locator(".prio-go")).toHaveCount(0);
+  await priority.locator(".prio-reason").click();
+  await expect(page).toHaveURL(new RegExp(`${priorityUrl}$`));
+});
+
+test("settings: theme and configurable shortcut persist; disable works; modal traps focus", async ({ page }) => {
+  const initial = await (await page.request.get("/api/settings")).json();
+  try {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Configuración" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Oscuro", exact: true }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    const recorder = page.locator("#chat-shortcut");
+    await recorder.click();
+    await page.locator("#chat-shortcut").press("Control+Shift+k");
+    await expect(page.locator("#chat-shortcut")).toHaveText("Ctrl/⌘ + Shift + K");
+    await page.keyboard.press("Tab");
+    await expect(dialog.locator(":focus")).toHaveCount(1);
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await page.keyboard.press("Control+j");
+    await expect(page.locator(".chat")).toHaveCount(0);
+    await page.keyboard.press("Control+Shift+k");
+    await expect(page.locator(".chat")).toBeVisible();
+    await expect(page.locator(".chat select, .chat input[list], .ask-btn kbd")).toHaveCount(0);
+    await expect.poll(async () => (await (await page.request.get("/api/settings")).json())["chat.shortcut"]?.key).toBe("k");
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await page.keyboard.press("Control+Shift+k");
+    await expect(page.locator(".chat")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Configuración" }).click();
+    await dialog.getByRole("button", { name: "Desactivar", exact: true }).click();
+    await expect(page.locator("#chat-shortcut")).toHaveText("Sin atajo");
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Control+Shift+k");
+    await expect(page.locator(".chat")).toHaveCount(0);
+  } finally {
+    await page.request.put("/api/settings/theme", { data: { value: initial.theme ?? "system" } });
+    await page.request.put("/api/settings/chat.shortcut", { data: { value: initial["chat.shortcut"] ?? { key: "j", primary: true, alt: false, shift: false } } });
+  }
+});
+
+test("chat: notebook stays beside it, scroll updates focus and each request uses the fresh screen", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 950 });
+  await openNotebook(page, EVAL);
+  const old = page.locator('[data-node="alg/p1/autoval/def"]');
+  await old.locator(".kind .title").click();
+  const before = await page.locator(".sheet").boundingBox();
+  await page.getByRole("button", { name: "Preguntar", exact: true }).click();
+  await expect(page.locator(".chat-context")).toContainText("Autovalor y autovector");
+  await expect.poll(async () => {
+    const sheet = await page.locator(".sheet").boundingBox();
+    const chat = await page.locator(".chat").boundingBox();
+    return Boolean(sheet && chat && sheet.x + sheet.width <= chat.x && sheet.x < before!.x);
+  }).toBe(true);
+  await page.screenshot({ path: "test-results/chat-desktop.png" });
+  const current = page.locator('[data-node="alg/p1/repr/chi"]');
+  await current.scrollIntoViewIfNeeded();
+  await expect(old).not.toBeInViewport();
+  await expect(page.locator(".chat-context")).not.toContainText("Autovalor y autovector");
+  // Force scrolling and submitting in the same task, before the scheduled scroll observer fires.
+  await page.locator(".chat-input textarea").fill("explicame esto");
+  const request = page.waitForRequest((r) => r.url().endsWith("/api/llm/chat") && r.method() === "POST");
+  await page.evaluate(() => {
+    const node = document.querySelector('[data-node="alg/p1/autoval/pol-car"]')!;
+    node.scrollIntoView({ block: "center", behavior: "instant" });
+    (document.querySelector(".chat-input") as HTMLFormElement).requestSubmit();
+  });
+  const payload = (await request).postDataJSON();
+  expect(payload.system).toContain("Polinomio característico");
+  expect(payload.system).not.toMatch(/## "This"[^\n]*\n### [^\n]*Autovalor y autovector/);
+  await expect(page.locator(".m-assistant").last()).toContainText("Polinomio característico");
+  await page.keyboard.press("Escape");
+  await expect.poll(async () => (await page.locator(".sheet").boundingBox())!.width).toBe(before!.width);
+});
+
+test("chat on mobile leaves the notebook readable above the dock", async ({ page }) => {
+  await page.setViewportSize({ width: 400, height: 850 });
+  await openNotebook(page, EVAL);
+  await page.getByRole("button", { name: "Preguntar", exact: true }).click();
+  const chat = await page.locator(".chat").boundingBox();
+  expect(chat!.y).toBeGreaterThan(400);
+  expect(chat!.width).toBeLessThanOrEqual(400);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(400);
+  await page.screenshot({ path: "test-results/chat-mobile.png" });
+});
+
+test("LLM tool follow-up refreshes page variables and navigation before its next request", async ({ page }) => {
+  const snapshots: string[] = [];
+  await page.route("**/api/llm/chat", async (route) => {
+    snapshots.push(route.request().postDataJSON().system);
+    const events = snapshots.length === 1 ? [
+      { type: "tool_use", id: "set-k", name: "setVariable", input: { name: "k", value: 2.5 } },
+      { type: "tool_use", id: "navigate", name: "navigateTo", input: { nodeId: "alg/p1/repr/chi" } },
+      { type: "done", stopReason: "tool_use" },
+    ] : [{ type: "text", text: "Contexto actualizado." }, { type: "done", stopReason: "end_turn" }];
+    await route.fulfill({ contentType: "text/event-stream", body: events.map((ev) => `data: ${JSON.stringify(ev)}\n\n`).join("") });
+  });
+  await openNotebook(page, EVAL);
+  await page.getByRole("button", { name: "Preguntar", exact: true }).click();
+  await page.locator(".chat-input textarea").fill("mostrame el polinomio con otro valor");
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".m-assistant").last()).toContainText("Contexto actualizado");
+  expect(snapshots).toHaveLength(2);
+  expect(snapshots[0]).toContain("k = 1");
+  expect(snapshots[1]).toContain("k = 2.5");
+  expect(snapshots[1]).toMatch(/## "This"[^\n]*\n### [^\n]*El polinomio característico como función/);
+  await expect(page.locator(".m-action").last()).toContainText("navigateTo: scrolled to");
 });

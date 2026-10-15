@@ -1,0 +1,3 @@
+.math-label .katex { font-size: 1.12em; }
+.svg-math-label { overflow: visible; pointer-events: none; }
+.svg-math-label > .math-label { display: inline-block; white-space: nowrap; }

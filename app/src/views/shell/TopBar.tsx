@@ -1,13 +1,9 @@
 import { Link, useParams } from "react-router";
-import { ChevronRight, Monitor, Moon, Sparkles, Sun } from "lucide-react";
+import { ChevronRight, Settings, Sparkles } from "lucide-react";
 import { useGraph } from "@/core/content";
-import { useSetting } from "@/state/settings";
 import { useUi } from "@/state/ui";
 import { useT } from "@/i18n";
-import type { ThemeMode } from "@/theme";
 import { Logo } from "./Logo";
-
-const NEXT: Record<ThemeMode, ThemeMode> = { system: "light", light: "dark", dark: "system" };
 
 function Crumbs() {
   const { semester, course, evaluation } = useParams();
@@ -35,9 +31,8 @@ function Crumbs() {
 
 export function TopBar() {
   const t = useT();
-  const [theme, setTheme] = useSetting<ThemeMode>("theme", "system");
   const setChatOpen = useUi((s) => s.setChatOpen);
-  const ThemeIcon = theme === "light" ? Sun : theme === "dark" ? Moon : Monitor;
+  const setSettingsOpen = useUi((s) => s.setSettingsOpen);
   return (
     <header className="topbar">
       <div className="topbar-left">
@@ -48,13 +43,12 @@ export function TopBar() {
         <Crumbs />
       </div>
       <div className="topbar-right">
-        <button type="button" className="icon-btn" onClick={() => setTheme(NEXT[theme])} title={`${t("nav.theme")}: ${t(`theme.${theme}`)}`} aria-label={t("nav.theme")}>
-          <ThemeIcon size={18} />
+        <button type="button" className="icon-btn" onClick={() => setSettingsOpen(true)} title={t("settings.title")} aria-label={t("settings.title")}>
+          <Settings size={18} />
         </button>
-        <button type="button" className="ask-btn" onClick={() => setChatOpen(true)} title="Ctrl/⌘ + J">
+        <button type="button" className="ask-btn" onClick={() => setChatOpen(true)} aria-label={t("nav.chat")}>
           <Sparkles size={16} />
           <span>{t("nav.chat")}</span>
-          <kbd>⌘J</kbd>
         </button>
       </div>
     </header>
