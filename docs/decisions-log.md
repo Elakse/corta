@@ -171,3 +171,49 @@ Format: date · decision · why.
 | # | Decision | Why |
 |---|---|---|
 | 92 | Apply transcript-backed changes to the active PDP P1 notebook only. Treat the teacher's broad oral scope statement as potential exam coverage, retain explicit exclusions (strong/weak typing definition and Visitor), preserve existing IDs and mark Visitor material historical. Keep TP requirements and examples from becoming exam predictions; do not modify P2 course content in this pass. | The teacher says anything taught can enter, while naming exceptions. The channel adds small but useful P1 concepts and caveats. Alejo explicitly deferred P2 updates, so its sources and recommendations remain available for a later pass without changing that course. |
+| 90 | `SvgMathLabel` sets the label's own `font` on its `foreignObject`. | The box inherited the page's 17px/30px, whose line strut pushed 11.5px edge-chip labels ~11px below the chip's centre (node labels were fine because `.gv-node` sets a font). Fixing the component covers every SVG math label, not just diagram chips. |
+
+## 2026-10-19 · Reading position
+
+| # | Decision | Why |
+|---|---|---|
+| 93 | Each evaluation page saves the reader's position as a node anchor (`{ id, offset }`: innermost node under the reading line + px offset) in the settings table, key `reading:<evaluation key>`, and restores it on open. Per evaluation, so every course resumes on its own. | Alejo wants to reload or visit another screen and pick up where he left off, in every course. A raw scrollY breaks with lazy topics, ruler snapping and window size; stable node ids (rule 3) survive all of them. SQLite settings already persist per-evaluation choices (paper), so no new table. |
+| 94 | Restore mounts the anchor's topic and those above it, then corrects the scroll each frame until the node is steady for 8 frames (6 s cap); wheel/touch/key/click cancels it. Saving is armed only after that. | Placeholders above are estimated heights; mounting them first and re-aiming absorbs late layout (fonts, KaTeX, ruler). Never saving before the restore stops the initial top from erasing the saved spot. |
+| 95 | Saves happen 250 ms after scrolling stops, on `pagehide`/hidden, and when the notebook unmounts (in a layout-effect cleanup, while rects are still real). `settings.set` PUTs use `keepalive`. `history.scrollRestoration = "manual"` while a notebook is open. | Debounce avoids a write per frame; the other triggers catch a reload or navigation right after scrolling. keepalive lets the last PUT survive unload. The browser's own restore would fight ours on reload. |
+| 96 | The notebook clears `scrollTarget` when it unmounts. | The overview/tutor request was never cleared, so returning to a page replayed the last click instead of resuming the reading position. |
+| 97 | TP2 of TDA is a notebook under the existing calendar entry `tp2-entrega` (kind `submission`), not a new `assignment` entry. Node ids use the `tda/tp2/` prefix. | A second evaluation for the same TP would duplicate its calendar event and priority entry; the study page only needs `evaluations/<id>/evaluation.yaml`. |
+| 98 | An assignment page presents the readable requirements as checkable `procedure` nodes (one per "se pide" item) with relations to the course theory, and contains **no solutions**. | Assignments are graded group work; the platform helps plan and review them, never answers them. |
+| 99 | When an assignment PDF carries hidden text, the page is built from a reading copy only. The hidden passages are summarized (id, page, what they add), never transcribed; the exact inventory stays as an untrusted source in `sources.yaml`. | Verbatim imperative text in notebook content would reach the tutor as context and could be mistaken for requirements. The original PDF is kept as evidence but its text is not extracted. |
+
+## 2026-10-19 · Google Calendar local setup
+
+| # | Decision | Why |
+|---|---|---|
+| 100 | Existing Web OAuth clients use the same server-only Google environment variables as Desktop clients, with an explicitly registered `http://localhost:<CORTA_PORT>/api/gcal/callback`. Ignore `.codex-attachments/` alongside `.env`. | Alejo supplied a Web client JSON for the local calendar integration. Document its exact redirect requirement and keep uploaded credential files out of version control. |
+
+## 2026-10-19 · Tutor width at different zoom levels
+
+| # | Decision | Why |
+|---|---|---|
+| 101 | Desktop chat fills the space beside the full-width notebook, clamped to 320–760px in theme metrics. Remove the 32vw restriction and 460px ceiling; keep the existing mobile dock and notebook reservation. | At 100% zoom the old ceiling left a large unused gap and cramped tutor answers. Available CSS width responds naturally to browser zoom while preserving the comfortable 125% layout. |
+
+## 2026-10-20 · Referenciar in the selection menu
+
+| # | Decision | Why |
+|---|---|---|
+| 102 | The selection menu gets a third button, **Referenciar**, that sends nothing: it opens the chat and pins the selection as a removable quote above the input (`chat-bridge.referenceTutor`, `ReferenceBar`); the reader's next message carries it as a quote bubble plus the passage and node for the model. Sending needs the reader's own text (or an image). | Alejo wanted to highlight something and ask whatever he likes about it, not pick a canned question. |
+| 103 | Selection actions now own their behavior (`run(selection, t)`); `defineAskAction` keeps the one-file "ask the tutor" shape of Explicar/Fuente. | A reference action doesn't fit "prompt + ask text"; the menu stays a plain loop with no per-type branching (registry rule). |
+
+## 2026-10-20 · External transcription trial
+
+| # | Decision | Why |
+|---|---|---|
+| 104 | Do not adopt TranscribeFlow as an intake fallback after the initial Spanish TDA trial. Preserve the selected video list, exported sample and comparison in local processed material. | Upload and SRT export succeeded for ten minutes, but technical terms and ordinary phrases were repeatedly corrupted. No full-class, batch or unlimited-capacity claim was verified. |
+| 105 | Use YouTube automatic captions in the original language as the primary extraction method in `course-material-intake`; retain raw tracks, timestamps and ASR uncertainty. Creator captions and authorized local/external transcription resolve gaps or inadequate passages. | Alejo explicitly selected this default after the TDA service trial. Automatic captions are usable source evidence but do not establish human-verified accuracy. |
+| 106 | Treat Buchwald's TDA videos as supplementary subject evidence for the active Podberezski course, comparing against its own official sources; keep the channel intake incremental with exact IDs and explicit caption gaps. | Alejo requested topic condensation from another chair while both courses continue. Neither external exam policies nor a temporary absence of a video determines our scope; PL is in our later calendar although outside current P1/P2 modules. |
+
+## 2026-10-20 · One clean main for daily Git use
+
+| # | Decision | Why |
+|---|---|---|
+| 107 | Align local `main` with the public history after a verified external history/working-change backup and a clean export based on remote `main`. Preserve personal files on disk with a mixed reset, untracked and ignored; remove the redundant local `publish` branch and configure `main` to track `origin/main`. Never force-push private history. | Alejo explicitly authorized one local main and ordinary add/commit/push updates without publishing courses, originals, credentials or state. Ignore rules alone do not exclude previously tracked files or their history. |

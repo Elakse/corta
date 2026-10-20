@@ -3,7 +3,7 @@
 On Alejo's current Windows computer, the faculty material lives in:
 
 ```text
-<Documents>\Facu\
+C:\Users\alejo\OneDrive\Documents\Facu\
   PDP\
     Calendario _ Paradigmas de programación - FIUBA.pdf
     Régimen de cursada _ Paradigmas de programación - FIUBA.html

@@ -27,7 +27,7 @@ Hierarchical map of the project. Agents: read `../AGENTS.md` first.
 | `ui/` | Shared UI pieces: `Surface` (solid card for code/tables/diagrams), `Progress`, `Modal` (native `<dialog>` that mounts children only while open) | `Surface.tsx`, `Modal.tsx` |
 | `camera/` | Webcam calibration dialog + photo capture: pure geometry, WebGL pipeline (flip, perspective, crop, colour), saved config | `pipeline.ts`, `CalibrationDialog.tsx` |
 | `theme/` | Design tokens (single source) | `tokens.ts` |
-| `views/` | Screens: `shell/`, `home/`, `semester/`, `course/`, `evaluation/` (notebook + overview), `calendar/`, `panels/` | `evaluation/Notebook.tsx` |
+| `views/` | Screens: `shell/`, `home/`, `semester/`, `course/`, `evaluation/` (notebook, overview, saved reading position: `useReadingPosition.ts`), `calendar/`, `panels/` | `evaluation/Notebook.tsx` |
 | `calendar/` | Calendar event-type registry + derivation | `types/` |
 | `priority/` | Next-priority strategy registry | `strategies/` |
 | `llm/` | Live viewport tracker, context builder, shared connection, chat panel, action registry, chat chips (`chips/`), chat bridge (`askTutor`), selection menu + its action registry (`selection/`) | `viewport.ts`, `context.ts`, `connection.ts`, `selection/SelectionMenu.tsx` |

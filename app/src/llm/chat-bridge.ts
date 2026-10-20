@@ -26,6 +26,41 @@ export function askTutor(request: TutorRequest) {
   useTutorRequests.setState({ pending: { ...request, seq: ++seq } });
 }
 
+/** A passage of the notebook the user wants to talk about; it waits above the chat input until they ask. */
+export interface TutorReference {
+  text: string;
+  nodeId?: string | null;
+  nodeTitle?: string;
+}
+
+export const useTutorReference = create<{ reference: (TutorReference & { seq: number }) | null }>(() => ({ reference: null }));
+
+/** Opens the chat with `reference` pinned above the input, so the user can write whatever they want about it. */
+export function referenceTutor(reference: TutorReference) {
+  const ui = useUi.getState();
+  if (reference.nodeId) ui.select(reference.nodeId);
+  ui.setChatOpen(true);
+  useTutorReference.setState({ reference: { ...reference, seq: ++seq } });
+}
+
+export const clearTutorReference = () => useTutorReference.setState({ reference: null });
+
+/** Where a passage was selected, then the passage itself (formulas as LaTeX): what the model reads after an instruction. */
+export function passageBlock({ text, nodeId, nodeTitle }: TutorReference) {
+  const where = nodeId ? `Selected in node "${nodeTitle ?? nodeId}" (id: ${nodeId}).\n\n` : "";
+  return `${where}Selected text:\n"""\n${text}\n"""`;
+}
+
+/** The user's own question about a pinned passage. */
+export function referenceRequest(reference: TutorReference, question: string): TutorRequest {
+  return {
+    prompt: `${question}\n\n${passageBlock(reference)}`,
+    display: question,
+    quote: reference.text,
+    nodeId: reference.nodeId ?? undefined,
+  };
+}
+
 /** Takes the pending request (the chat calls this once it can send). */
 export function takeTutorRequest(): TutorRequest | null {
   const { pending } = useTutorRequests.getState();

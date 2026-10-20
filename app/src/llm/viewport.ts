@@ -1,5 +1,8 @@
 import { useUi } from "@/state/ui";
 
+/** Viewport y where the reading area starts, just under the sticky top bar. */
+export const readingTop = () => document.querySelector(".topbar")?.getBoundingClientRect().bottom ?? 0;
+
 /** One observer per notebook. Scroll reads are batched; sending can synchronously refresh. */
 export function createViewportTracker(main: HTMLElement, flow: HTMLElement) {
   const elements = new Map<string, HTMLElement>();
@@ -9,7 +12,7 @@ export function createViewportTracker(main: HTMLElement, flow: HTMLElement) {
     const layout = getComputedStyle(main);
     const left = bounds.left + parseFloat(layout.paddingLeft);
     const right = bounds.right - parseFloat(layout.paddingRight);
-    const top = document.querySelector(".topbar")?.getBoundingClientRect().bottom ?? 0;
+    const top = readingTop();
     const chat = document.querySelector(".chat")?.getBoundingClientRect();
     // On small screens chat docks below the reading area; it must not count as visible paper.
     const bottom = chat && parseFloat(layout.paddingBottom) > 0 ? Math.min(innerHeight, chat.top) : innerHeight;

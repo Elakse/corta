@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { createRegistry } from "@/core/registry";
 import type { StringKey } from "@/i18n";
-import type { TutorRequest } from "../chat-bridge";
+import { askTutor, passageBlock, type TutorRequest } from "../chat-bridge";
 
 /** What the user selected on a study page. */
 export interface SelectionInfo {
@@ -12,8 +12,10 @@ export interface SelectionInfo {
   nodeTitle?: string;
 }
 
+export type Translate = (key: StringKey) => string;
+
 /**
- * A button in the selection menu. It turns the selection into a tutor request.
+ * A button in the selection menu: it decides what happens with the selection.
  * Adding one = a file in selection/actions/ (see docs/guides/add-llm-action.md).
  */
 export interface SelectionActionDef {
@@ -22,10 +24,7 @@ export interface SelectionActionDef {
   order: number;
   icon: LucideIcon;
   label: StringKey;
-  /** the user's bubble text in the chat */
-  ask: StringKey;
-  /** the instruction the model receives (the selection is appended by the menu) */
-  prompt: (selection: SelectionInfo) => string;
+  run: (selection: SelectionInfo, t: Translate) => void;
 }
 
 export const selectionActionRegistry = createRegistry<SelectionActionDef>("selection actions", (a) => a.id);
@@ -33,13 +32,23 @@ export const defineSelectionAction = (a: SelectionActionDef) => a;
 
 export const sortedSelectionActions = () => selectionActionRegistry.list().sort((a, b) => a.order - b.order);
 
-/** Builds the request: the action's instruction, where the text was selected, and the text itself. */
-export function selectionRequest(action: SelectionActionDef, selection: SelectionInfo, ask: string): TutorRequest {
-  const where = selection.nodeId ? `\n\nSelected in node "${selection.nodeTitle ?? selection.nodeId}" (id: ${selection.nodeId}).` : "";
+/** Builds the request: the instruction, where the text was selected, and the text itself. */
+export function selectionRequest(instruction: string, selection: SelectionInfo, ask: string): TutorRequest {
   return {
-    prompt: `${action.prompt(selection)}${where}\n\nSelected text:\n"""\n${selection.text}\n"""`,
+    prompt: `${instruction}\n\n${passageBlock(selection)}`,
     display: ask,
     quote: selection.text,
     nodeId: selection.nodeId ?? undefined,
   };
 }
+
+interface AskActionDef extends Pick<SelectionActionDef, "id" | "order" | "icon" | "label"> {
+  /** the user's bubble text in the chat */
+  ask: StringKey;
+  /** the instruction the model receives (the selection is appended) */
+  prompt: (selection: SelectionInfo) => string;
+}
+
+/** An action that asks the tutor something about the selection right away. */
+export const defineAskAction = ({ ask, prompt, ...base }: AskActionDef) =>
+  defineSelectionAction({ ...base, run: (selection, t) => askTutor(selectionRequest(prompt(selection), selection, t(ask))) });

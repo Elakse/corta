@@ -147,7 +147,8 @@ test("chat reserves the final notebook width once and honors reduced motion", as
 });
 
 test("chat uses spare desk space before narrowing the notebook", async ({ page }) => {
-  for (const width of [1440, 1530]) {
+  // 1504 / 1880 CSS px represent the same screen at 125% / 100% browser zoom.
+  for (const width of [1440, 1504, 1530, 1880, 2350]) {
     await page.setViewportSize({ width, height: 950 });
     await openNotebook(page, EVAL);
     const initial = (await page.locator(".sheet").boundingBox())!;
@@ -156,13 +157,16 @@ test("chat uses spare desk space before narrowing the notebook", async ({ page }
     await expect.poll(() => page.locator(".chat").evaluate((chat) => {
       const sheet = document.querySelector(".sheet")!.getBoundingClientRect();
       return chat.getBoundingClientRect().left - sheet.right;
-    })).toBeCloseTo(12, 0);
+    })).toBeGreaterThanOrEqual(11);
     const sheet = (await page.locator(".sheet").boundingBox())!;
     const chat = (await page.locator(".chat").boundingBox())!;
     expect(sheet.width).toBeCloseTo(initial.width, 0);
     expect(sheet.x).toBeLessThan(initial.x);
     expect(chat.width).toBeGreaterThanOrEqual(320);
+    const layoutWidth = await page.evaluate(() => document.documentElement.clientWidth);
+    expect(chat.width).toBeCloseTo(Math.min(760, layoutWidth - initial.width - 40), 0);
     expect(chat.x + chat.width).toBeLessThanOrEqual(width);
+    await page.screenshot({ path: `test-results/chat-space-${width}.png` });
     await page.keyboard.press("Control+j");
     await expect(page.locator(".chat")).not.toBeVisible();
   }

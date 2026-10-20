@@ -38,6 +38,22 @@ updates begin only after that approval. Its intake manifest, summaries and revie
 `<course>/processed/material-intake/`. Extracted text remains under `processed/text/`; the tutor currently reads
 compatible `.txt` extraction, not editorial `.md` summaries. See the skill for timestamp and page handling.
 
+For YouTube intake, the primary extraction method is YouTube's automatic captions in the recording's
+original language. Preserve raw tracks and timestamps, label ASR uncertainty and verify decisive claims.
+Use creator captions or authorized local/external transcription to resolve missing or inadequate passages.
+
+Transcription-service trial (2026-10-20): TranscribeFlow returned a ten-minute Spanish TDA sample
+and an SRT export, but repeatedly corrupted technical terms. It is not a validated fallback for the
+intake skill. The local trial evidence and channel selection are in TDA's
+`processed/material-intake/transcribeflow-test-2026-10-20/`. A successful upload/export does not establish
+transcription quality, unlimited capacity or batch reliability; compare against source evidence before adoption.
+
+When using classes from another chair, compare subject matter with the student's own current syllabus,
+schedule, guides and notebooks. Keep that chair's administration, grading, deadlines and TP requirements
+out of course updates. Distinguish topics outside the current exam from later topics of the same course.
+For an ongoing channel, record the retrieval date, selected IDs, last processed video and unresolved tracks
+in the course's `processed/material-intake/index.md`; later intakes extend that record and recheck gaps.
+
 ## 3. Check
 
 ```powershell

@@ -16,6 +16,7 @@ import { useLocale } from "@/i18n";
 import { fmtNotebookDate } from "../format";
 import { PageContext, type PageContextValue } from "./page-context";
 import { MarginLayer } from "./MarginLayer";
+import { useReadingPosition } from "./useReadingPosition";
 import { TopicSection } from "./TopicSection";
 import { Overview } from "./overview/Overview";
 import { MathText } from "@/ui/MathText";
@@ -97,13 +98,24 @@ export function Notebook({ course, evaluation }: { course: Course; evaluation: E
     for (const t of content.topics) walkNodes([t], (n) => topicOf.set(n.id, t.id));
     return topicOf;
   }, [content.topics]);
+  /** Mounts the node's topic and every one above it (so heights above are real); false for an unknown id. */
+  const revealNode = useCallback(
+    (id: string) => {
+      const topic = graphNodes.get(id);
+      if (!topic) return false;
+      const idx = content.topics.findIndex((t) => t.id === topic);
+      mount(content.topics.slice(0, idx + 1).map((t) => t.id));
+      return true;
+    },
+    [graphNodes, content.topics, mount],
+  );
   const scrollTarget = useUi((s) => s.scrollTarget);
+  // a request that outlives its page is stale: coming back must restore the reading position, not replay it
+  useEffect(() => () => useUi.setState({ scrollTarget: null }), []);
+  useReadingPosition({ evaluationKey: evaluation.key, elements, reveal: revealNode });
   useEffect(() => {
     if (!scrollTarget) return;
-    const topic = graphNodes.get(scrollTarget.id);
-    if (!topic) return;
-    const idx = content.topics.findIndex((t) => t.id === topic);
-    mount(content.topics.slice(0, idx + 1).map((t) => t.id));
+    if (!revealNode(scrollTarget.id)) return;
     let tries = 0;
     let frame = 0;
     let lastY = window.scrollY;
@@ -135,7 +147,7 @@ export function Notebook({ course, evaluation }: { course: Course; evaluation: E
       window.removeEventListener("wheel", cancel);
       window.removeEventListener("touchmove", cancel);
     };
-  }, [scrollTarget, graphNodes, content.topics, mount, elements]);
+  }, [scrollTarget, revealNode, elements]);
 
   // ---- header
   const tree = evaluationTree(evaluation);

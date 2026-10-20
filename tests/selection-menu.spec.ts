@@ -27,7 +27,7 @@ test("dragging over notebook text draws a highlighter stroke, with no browser se
   expect(await page.evaluate(() => getSelection()?.isCollapsed ?? true)).toBe(true);
   const menu = page.getByRole("toolbar", { name: "Acciones sobre la selección" });
   await expect(menu).toBeVisible();
-  await expect(menu.getByRole("button")).toHaveText(["Explicar", "Fuente"]);
+  await expect(menu.getByRole("button")).toHaveText(["Explicar", "Fuente", "Referenciar"]);
   await page.screenshot({ path: "test-results/selection-menu.png" });
 
   await menu.getByRole("button", { name: "Explicar" }).click();
@@ -38,6 +38,37 @@ test("dragging over notebook text draws a highlighter stroke, with no browser se
   await expect(user.locator(".m-quote")).toContainText("autovalor");
   await expect(page.locator(".chat-context .cc-node")).toContainText("Autovalor");
   await page.screenshot({ path: "test-results/selection-chat.png" });
+});
+
+test("Referenciar pins the selection above the chat input and sends it only with the reader's own question", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openNotebook(page, EVAL);
+  await highlight(page, NODE);
+  await page.getByRole("toolbar", { name: "Acciones sobre la selección" }).getByRole("button", { name: "Referenciar" }).click();
+  const ref = page.locator(".chat-input .chat-ref");
+  await expect(ref).toContainText("autovalor");
+  await expect(page.locator(".m-user")).toHaveCount(0); // nothing was sent
+  const input = page.getByPlaceholder("¿Qué querés saber de esto?");
+  await expect(input).toBeFocused();
+  await expect(page.getByRole("button", { name: "Enviar" })).toBeDisabled();
+  await page.screenshot({ path: "test-results/selection-reference.png" });
+
+  await input.fill("¿Por qué esto es distinto de cero?");
+  await input.press("Enter");
+  await expect(ref).toHaveCount(0);
+  const user = page.locator(".m-user").last();
+  await expect(user).toContainText("¿Por qué esto es distinto de cero?");
+  await expect(user.locator(".m-quote")).toContainText("autovalor");
+});
+
+test("the pinned reference can be taken back", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openNotebook(page, EVAL);
+  await highlight(page, NODE);
+  await page.getByRole("button", { name: "Referenciar" }).click();
+  await page.getByRole("button", { name: "Quitar referencia" }).click();
+  await expect(page.locator(".chat-ref")).toHaveCount(0);
+  await expect(page.getByPlaceholder("¿Qué no entendés de esto?")).toBeVisible();
 });
 
 test("double click marks a word, formulas stay whole, Ctrl+C copies LaTeX and Esc clears", async ({ page, context }) => {

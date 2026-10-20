@@ -290,7 +290,8 @@ Phases 3–5 are independent of each other and can run in parallel or in any ord
 The shell reserves the final chat space in one layout change; the notebook's responsive layout
 and ruler settle at the new width. Padding is never animated, which avoids repeated text reflow,
 ruler passes and viewport measurements. The panel alone uses a short transform/opacity transition.
-Desktop uses a right column; under 900px the panel docks below the reading viewport. Chat sizes and
+Desktop uses a right column that fills spare horizontal space up to 760px, responding to the CSS viewport
+as browser zoom changes; under 900px the panel docks below the reading viewport. Chat sizes and
 motion are tokens, and reduced-motion skips the panel animation.
 `views/shell/SettingsDialog.tsx` is the single preferences surface (theme, shortcut, connection).
 Explicit fixed insets and auto margins center it independently of resets; short windows scroll its
@@ -306,3 +307,12 @@ a synchronous refresh through the page bridge. Context only accepts positive, fi
 scores and selection belonging to the current evaluation and visible screen. The chat reads a new
 snapshot immediately before every provider request; tool rounds do not reuse the pre-action closure.
 See [the tutor guide](guides/llm-setup.md#preferences-and-reading-context) for scoring and extension rules.
+
+**Reading position.** Each evaluation page remembers where the reader is (`views/evaluation/useReadingPosition.ts`,
+pure helpers in `reading-position.ts`). The position is an anchor, not a scrollY: the innermost node under the
+reading line (just below the top bar) plus how far its top is above that line, stored in the settings table under
+`reading:<semester>/<course>/<evaluation>` once scrolling pauses (250 ms), when the page is hidden/unloaded and when the
+notebook unmounts (leaving for another screen). On open it waits for settings, mounts the topics up to the anchor's
+(like an overview click, so heights above are real), then nudges the scroll every frame until the node holds its spot,
+re-correcting late layout shifts; wheel, touch, keys or a click hand control back to the reader. Saving starts only
+after the restore, so the initial top never overwrites a saved spot. Unknown ids (content changed) are ignored.

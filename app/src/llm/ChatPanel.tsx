@@ -17,13 +17,14 @@ import { usePageBridge } from "./page-bridge";
 import { runAction, toolDefinitions } from "./registry";
 import { useLlmConnection } from "./connection";
 import { renderChatMarkdown } from "./chip-registry";
-import { takeTutorRequest, useTutorRequests, type TutorRequest } from "./chat-bridge";
+import { clearTutorReference, referenceRequest, takeTutorRequest, useTutorReference, useTutorRequests, type TutorRequest } from "./chat-bridge";
 import { courseKeyOf, evaluationKeyOf } from "./route";
 import { motionTokens } from "@/theme/tokens";
 import { MathText } from "@/ui/MathText";
 import { CaptureDialog } from "@/camera/CaptureDialog";
 import { imagesFromClipboard, useAttachments, type Attachment } from "./attachments";
 import { AttachButtons, AttachmentThumbs } from "./AttachmentBar";
+import { ReferenceBar } from "./ReferenceBar";
 import { TutorError } from "./errors";
 
 interface DisplayItem {
@@ -63,6 +64,7 @@ export function ChatPanel() {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const attachments = useAttachments();
+  const reference = useTutorReference((s) => s.reference);
   const [shooting, setShooting] = useState(false);
   const abort = useRef<AbortController | null>(null);
   const sessionId = useRef(crypto.randomUUID());
@@ -76,6 +78,10 @@ export function ChatPanel() {
     const focusTimer = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 250);
     return () => clearTimeout(focusTimer);
   }, [open, load]);
+  // A newly pinned passage invites a question: put the cursor in the input (the effect above covers a closed panel).
+  useEffect(() => {
+    if (reference && open && ready) inputRef.current?.focus({ preventScroll: true });
+  }, [reference?.seq, open, ready]);
   useLayoutEffect(() => { if (open) followBottom.current = true; }, [open]);
   useLayoutEffect(() => {
     const list = listRef.current;
@@ -183,6 +189,13 @@ export function ChatPanel() {
     if (!canSend || useLlmConnection.getState().busy) return;
     const images = attachments.items;
     attachments.clear();
+    if (reference) {
+      const request = referenceRequest(reference, draft.trim() || t("chat.imageOnly"));
+      clearTutorReference();
+      setDraft("");
+      void send(request.prompt, request, images);
+      return;
+    }
     void send(draft, undefined, images);
   }
   const onSubmit = (e: FormEvent) => {
@@ -221,7 +234,7 @@ export function ChatPanel() {
               {t("chat.title")}
             </div>
             <div className="chat-actions">
-              <button className="icon-btn" disabled={busy} onClick={() => { followBottom.current = true; setItems([]); setHistory([]); sessionId.current = crypto.randomUUID(); }} aria-label={t("chat.clear")} title={t("chat.clear")}>
+              <button className="icon-btn" disabled={busy} onClick={() => { followBottom.current = true; setItems([]); setHistory([]); clearTutorReference(); sessionId.current = crypto.randomUUID(); }} aria-label={t("chat.clear")} title={t("chat.clear")}>
                 <Eraser size={16} />
               </button>
               <button className="icon-btn" onClick={() => setOpen(false)} aria-label={t("settings.close")}>
@@ -266,9 +279,10 @@ export function ChatPanel() {
             {busy && items.at(-1)?.role !== "assistant" && <div className="msg m-typing"><span /><span /><span /></div>}
           </div>
           <form className="chat-input" onSubmit={onSubmit}>
+            <ReferenceBar reference={reference} onRemove={clearTutorReference} />
             {attachments.items.length > 0 && <AttachmentThumbs items={attachments.items} onRemove={attachments.remove} />}
             <AttachButtons disabled={!ready} full={attachments.full} onFiles={(files) => void attachments.addFiles(files)} onCamera={() => setShooting(true)} />
-            <textarea ref={inputRef} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={onKey} onPaste={onPaste} placeholder={t("chat.placeholder")} rows={1} disabled={!ready} />
+            <textarea ref={inputRef} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={onKey} onPaste={onPaste} placeholder={t(reference ? "chat.referencePlaceholder" : "chat.placeholder")} rows={1} disabled={!ready} />
             {busy ? (
               <button type="button" className="send" onClick={() => abort.current?.abort()} aria-label={t("chat.stop")}>
                 <Square size={14} />

@@ -45,8 +45,13 @@ export default defineChip({
 ```
 
 **Selection actions** (`app/src/llm/selection/actions/*.ts`, contract in `selection/registry.ts`). Buttons in the
-floating menu that appears over text selected on a study page. Each has an `icon` (lucide), a `label` and an `ask`
-(i18n keys: the button and the user's chat bubble) and a `prompt(selection)` with the instruction for the model.
-The menu appends where the text was selected (node title + id) and the text itself, with formulas as LaTeX.
-Built in: `explain` and `source`. Requests go through `askTutor()` (`llm/chat-bridge.ts`), which anything in the
-app can call to open the chat and send a question once the connection is ready.
+floating menu that appears over text selected on a study page. Each has an `icon` (lucide), a `label` (i18n key) and
+a `run(selection, t)` that decides what the button does. Two shapes:
+
+- **Ask now** — `defineAskAction({ id, order, icon, label, ask, prompt })`: `ask` is the user's chat bubble (i18n key) and
+  `prompt(selection)` the instruction for the model. The menu appends where the text was selected (node title + id) and
+  the text itself, with formulas as LaTeX, and sends it through `askTutor()` (`llm/chat-bridge.ts`), which anything in the
+  app can call to open the chat and send a question once the connection is ready. Built in: `explain`, `source`.
+- **Custom** — `defineSelectionAction({ …, run })`. Built in: `reference`, which sends nothing: `referenceTutor()` opens the
+  chat and pins the selection above the input (`ReferenceBar`); the reader's next message carries it
+  (`referenceRequest()`), shown as a quote like the other actions.

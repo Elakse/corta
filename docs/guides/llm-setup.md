@@ -85,8 +85,10 @@ mapped to `images_unsupported` and shown in chat. OpenCode Go image support is u
 
 Selecting text on a study page draws a highlighter stroke (Corta's own selection, `core/highlighter/`, see
 below) and shows a floating menu (`llm/selection/SelectionMenu.tsx`, one per notebook, portaled to `<body>`). **Explicar** asks for a short plain-language explanation in the node's context;
-**Fuente** asks the tutor to trace the text back to the original material. The chat shows the selection as a
-quote plus a short question; the model receives the instruction, the node id/title and the text, with
+**Fuente** asks the tutor to trace the text back to the original material. **Referenciar** sends nothing: it opens
+the chat with the selection pinned as a removable quote above the input, so the reader writes their own question
+about it (the next message carries the passage; it is cleared on send, with the ✕, or with "Nueva conversación").
+The chat shows the selection as a quote plus a short question; the model receives the instruction, the node id/title and the text, with
 formulas as their LaTeX (read from KaTeX's MathML annotation; a selection that cuts a formula grows to include it).
 The node becomes "this". The menu sits above the selection's first line (below on touch screens, where the
 system bar is above), appears once a drag ends, and closes on Esc, outside clicks or an empty selection.
@@ -130,7 +132,7 @@ Connection controls are disabled during a tutor response so one turn stays with 
 The native dialog is explicitly centered in the viewport (independent of CSS resets), contains
 keyboard focus, supports Escape and restores focus when closed. Short viewports scroll its contents.
 
-On desktop chat uses the spare desk space first, keeping the notebook at its normal width whenever
+On desktop chat expands into the spare desk space, up to 760px, keeping the notebook at its normal width whenever
 a panel of at least 320px fits. The sheet-to-panel gap is 12px; notebook width, desk gutter, panel
 inset and gap come from theme metrics. Panel sizing uses the available layout width (excluding the
 scrollbar). When both no longer fit, the notebook reserves its final reading width once; the panel uses a

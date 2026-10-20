@@ -39,7 +39,7 @@ export const api = {
   },
   settings: {
     all: () => call<Record<string, unknown>>("/settings"),
-    set: (key: string, value: unknown) => call<{ ok: true }>(`/settings/${encodeURIComponent(key)}`, { method: "PUT", json: { value } }),
+    set: (key: string, value: unknown) => call<{ ok: true }>(`/settings/${encodeURIComponent(key)}`, { method: "PUT", json: { value }, keepalive: true }),
   },
   sessions: {
     list: () => call<{ sessions: StudySession[] }>("/sessions"),

@@ -37,6 +37,8 @@ for a focused review, and `CORTA_GRAPHICS_WIDTH=400` for only the phone profiles
 throwaway database and makes no writes to personal progress.
 
 
+`tests/reading-position.spec.ts` scrolls into the sample notebook, reloads and leaves for Home and back, and checks the node returns to the same screen position (and that the top is remembered too).
+
 Tutor regressions in `tests/app.spec.ts` exercise full-card navigation, Settings persistence and
 shortcut recording/disable, desktop/mobile panel placement, scrolling without clicking, a scroll
 and submit in the same browser task, and fresh variables/focus after tool actions. They use the
@@ -51,6 +53,13 @@ the bottom (1440 / 400px). It also checks scroll preservation through completion
 a new question, Settings centering at 1440×950 / 400×850 / 400×480, and notebook width sampled over
 the entire panel entry. Width changes once, rather than on every animation frame; reduced motion
 disables panel animation. These tests use the mock connection and the same throwaway database.
+The spare-space check covers 1440, 1504, 1530, 1880 and 2350px: full notebook width, no overlap,
+the 760px panel ceiling, and viewport widths equivalent to 125% / 100% zoom on an 1880px screen.
+
+Verification on 2026-10-19 for tutor width: strict typecheck, all five chat UI cases and all ten
+`ruler with tutor` cases passed on Windows. The 1504 / 1880px layout screenshots were visually
+inspected. The full course ruler sweep was stopped after 13 passing cases (sample, PDP and the
+first Proba case); the remaining full-course cases were not completed for this change.
 
 
 `tests/chat-images.spec.ts` covers the send button's vertical centering, attaching and pasting images

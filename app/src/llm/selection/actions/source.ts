@@ -1,7 +1,7 @@
 import { BookOpenCheck } from "lucide-react";
-import { defineSelectionAction } from "../registry";
+import { defineAskAction } from "../registry";
 
-export default defineSelectionAction({
+export default defineAskAction({
   id: "source",
   order: 20,
   icon: BookOpenCheck,

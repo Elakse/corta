@@ -21,6 +21,7 @@ playwright-report/
 /docs/archive/
 /docs/IMPLEMENTATION_PROMPT.md
 # Local credentials and generated reports.
+/.codex-attachments/
 .env.*
 !.env.example
 coverage/

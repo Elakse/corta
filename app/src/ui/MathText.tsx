@@ -16,7 +16,8 @@ export function SvgMathLabel({ text, x = 0, y = 0, font, color, anchor = "start"
   const size = useMemo(() => measured ?? measureLabel(text, font), [text, font, fonts, measured]);
   const left = anchor === "middle" ? x - size.width / 2 : anchor === "end" ? x - size.width : x;
   const top = vertical === "center" ? y - size.height / 2 : y - size.baseline;
-  return <foreignObject x={left} y={top} width={Math.max(1, size.width)} height={size.height} className={`svg-math-label ${className}`}>
+  // The box needs the label's own font: it would otherwise inherit the page's (17px/30px) and its line strut pushes the label down.
+  return <foreignObject x={left} y={top} width={Math.max(1, size.width)} height={size.height} className={`svg-math-label ${className}`} style={{ font }}>
     <MathText text={text} style={{ font, color, lineHeight: 1.3 }} />
   </foreignObject>;
 }

@@ -4,8 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useGraph } from "@/core/content";
 import { useTextSelection } from "@/core/highlighter";
 import { useT } from "@/i18n";
-import { askTutor } from "../chat-bridge";
-import { selectionRequest, sortedSelectionActions, type SelectionInfo } from "./registry";
+import { sortedSelectionActions, type SelectionInfo } from "./registry";
 import { selectionNodeId, selectionText } from "./read";
 import "./selection.css";
 
@@ -80,7 +79,7 @@ export function SelectionMenu() {
     if (!current) return;
     const action = sortedSelectionActions().find((a) => a.id === id);
     if (!action) return;
-    askTutor(selectionRequest(action, current.info, t(action.ask)));
+    action.run(current.info, t);
     getSelection()?.removeAllRanges();
     clear();
   };

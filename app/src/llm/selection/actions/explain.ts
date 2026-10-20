@@ -1,7 +1,7 @@
 import { Lightbulb } from "lucide-react";
-import { defineSelectionAction } from "../registry";
+import { defineAskAction } from "../registry";
 
-export default defineSelectionAction({
+export default defineAskAction({
   id: "explain",
   order: 10,
   icon: Lightbulb,

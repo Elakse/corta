@@ -121,7 +121,7 @@ export const metrics = {
   chatGap: 12,
   chatInset: 12,
   // Give spare desk space to chat before narrowing the notebook; 100% excludes the scrollbar.
-  chatWidth: "clamp(320px, min(32vw, calc(100% - var(--notebook-width) - var(--desk-gutter) - var(--chat-gap) - var(--chat-inset))), 460px)",
+  chatWidth: "clamp(320px, calc(100% - var(--notebook-width) - var(--desk-gutter) - var(--chat-gap) - var(--chat-inset)), 760px)",
   chatDockHeight: "min(44dvh, 400px)",
   u: 30,
   margin: 128,
