@@ -217,3 +217,9 @@ Format: date · decision · why.
 | # | Decision | Why |
 |---|---|---|
 | 107 | Align local `main` with the public history after a verified external history/working-change backup and a clean export based on remote `main`. Preserve personal files on disk with a mixed reset, untracked and ignored; remove the redundant local `publish` branch and configure `main` to track `origin/main`. Never force-push private history. | Alejo explicitly authorized one local main and ordinary add/commit/push updates without publishing courses, originals, credentials or state. Ignore rules alone do not exclude previously tracked files or their history. |
+
+## 2026-10-20 · Approved TDA subject clarifications
+
+| # | Decision | Why |
+|---|---|---|
+| 108 | Apply approved intake items R01–R04 within the existing PD and exhaustive-search nodes: counting/decision, reconstruction and memory dependencies, copying the saved best candidate, and optional MRV/domain restoration. Preserve IDs and cite exact video passages as supplementary evidence. | Alejo approved all four concrete items after independent comparison with the local guides and sources. These changes clarify existing material without importing another chair's requirements or solving assignments. |

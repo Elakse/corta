@@ -149,3 +149,9 @@ our own official sources determine applicability. Live inventory has 15 relevant
 flow class (uploaded 20/10); 14 have Spanish automatic captions, while that newest class has no published
 caption tracks. Originals, reading copies, summaries and incremental review history live under TDA's
 `processed/material-intake/index.md`; keep later videos and the unresolved flow class open for future intake.
+All 14 available transcripts now have subject summaries and an independent review against our sources.
+Alejo approved R01–R04 on 20/10; all four are applied in the existing PD and BE nodes, preserving IDs:
+counting/decision, reconstruction/memory dependencies, copying the saved best candidate and optional MRV.
+Checks: source hashes, compatible text paths, timestamp/link bounds, content validation and the prior guide
+coverage audit pass. The focused P1/P2 ruler sweep passed all 12 cases (1300/900/400px, light/dark),
+with zero off-rule lines. Results and approval are recorded in the intake review.
