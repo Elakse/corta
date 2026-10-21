@@ -126,12 +126,13 @@ export const metrics = {
   u: 30,
   margin: 128,
   checkbox: 19,
+  /** checkbox corner radius (keep in sync with `.check`'s border-radius: it sets the learned shape's radius) */
+  checkboxRadius: 4,
   sink: 2, // px the text baseline sits above a rule's ink
   pencilNote: { width: 140, fontSize: 19 },
-  phone: { maxWidth: 720, u: 28, margin: 76, checkbox: 15 },
-  /** checkbox x positions (px from the sheet's left edge) per nesting depth */
-  checkColumns: [62, 84, 106],
-  checkColumnsPhone: [33, 49, 65],
+  phone: { maxWidth: 720, u: 28, margin: 76, checkbox: 15, checkStep: 9 },
+  /** px between checkbox columns of consecutive depths (deeper = closer to the frame; see core/learned-shape) */
+  checkStep: 14,
 } as const;
 
 export const motionTokens = {

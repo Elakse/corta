@@ -11,6 +11,8 @@ import { translate } from "@/i18n";
 interface ProgressStore {
   done: ReadonlySet<string>;
   loaded: boolean;
+  /** Counts user-initiated changes (`apply`). Loading and rollbacks don't bump it: the notebook animates only on user toggles. */
+  userSeq: number;
   load: () => Promise<void>;
   apply: (change: FlagChange) => void;
 }
@@ -18,6 +20,7 @@ interface ProgressStore {
 export const useProgress = create<ProgressStore>((set, get) => ({
   done: new Set(),
   loaded: false,
+  userSeq: 0,
   async load() {
     try {
       const { done } = await api.progress.get();
@@ -30,7 +33,7 @@ export const useProgress = create<ProgressStore>((set, get) => ({
   apply(change) {
     if (!change.set.length && !change.unset.length) return;
     const before = get().done;
-    set({ done: applyChange(before, change) });
+    set({ done: applyChange(before, change), userSeq: get().userSeq + 1 });
     api.progress.change(change).catch(() => {
       set({ done: applyChange(get().done, { set: change.unset, unset: change.set }) });
       toast(translate("progress.saveFailed"), "error");

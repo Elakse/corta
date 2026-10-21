@@ -89,13 +89,6 @@
 .node { position: relative; margin-top: var(--u); scroll-margin-top: calc(var(--u) * 3); }
 .topic + .topic, .topic-placeholder + .topic, .topic + .topic-placeholder { margin-top: calc(var(--u) * 2); }
 .topic > .node { margin-top: 0; }
-.node::before {
-  content: ""; position: absolute; inset: 0 calc(var(--u) * -.5); z-index: -1; border-radius: 10px;
-  background: var(--learned); opacity: 0; transform: scaleX(.97); transform-origin: left;
-  transition: opacity .4s, transform .5s var(--ease);
-}
-.node.done::before { opacity: 1; transform: none; }
-.node.done .node.done::before { opacity: 0; }
 .node[data-selected]::after {
   content: ""; position: absolute; top: 4px; bottom: 4px; right: calc(var(--u) * -.5 - 6px); width: 3px; border-radius: 3px;
   background: var(--pen); opacity: .5;
@@ -126,7 +119,7 @@
 .margin-layer { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .check {
   position: absolute; width: var(--cb); height: var(--cb); margin-left: calc(var(--cb) / -2);
-  border: 1.6px solid var(--ink-soft); border-radius: 4px; background: var(--paper);
+  border: 1.6px solid var(--ink-soft); border-radius: var(--cb-radius); background: var(--paper);
   cursor: pointer; padding: 0; display: grid; place-items: center; pointer-events: auto;
   transition: border-color .2s, background .2s, transform .15s;
 }
@@ -138,11 +131,13 @@
 .check[data-state="on"] .tick { stroke-dashoffset: 0; }
 .check[data-state="partial"] { border-color: var(--learned-ink); }
 .check[data-state="partial"] .dash { stroke: var(--learned-ink); stroke-dashoffset: 0; }
-.bracket {
-  position: absolute; width: 4px; margin-left: -2px; border-radius: 4px; background: var(--learned-ink);
-  transform-origin: top; transform: scaleY(0); opacity: .55; transition: transform .5s var(--ease);
-}
-.bracket.on { transform: scaleY(1); }
+
+/* learned nodes: one closed tab + band outline per outermost learned node (core/learned-shape).
+   The fill SVG sits before the header (under the ruled frame); the ink SVG opens the margin layer. */
+.shape-layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.learned-fill, .learned-patch-wash { fill: var(--learned); }
+.learned-patch { fill: var(--paper); }
+.learned-ink { fill: none; stroke: var(--learned-ink); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1 2; }
 
 /* ---------- taped cards & snapped blocks ---------- */
 .rl-snap { position: relative; }
@@ -188,7 +183,7 @@
   .head .topic { line-height: 1.15; }
   .kind .src { float: none; display: block; margin-left: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .sheet, .node::before, .bracket, .check path { animation: none !important; transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .sheet, .check path { animation: none !important; transition: none !important; } }
 
 /* ---------- overview (bird's-eye view) ---------- */
 .overview { max-width: var(--notebook-width); margin: 0 auto 26px; }

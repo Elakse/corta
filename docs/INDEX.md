@@ -5,6 +5,7 @@ Hierarchical map of the project. Agents: read `../AGENTS.md` first.
 ## 1. Overview
 - [`study_platform_design.md`](study_platform_design.md): the *what*: vision, principles, screens, generation pipeline, **§11 decisions**, §12 open questions.
 - [`architecture.md`](architecture.md): the *how*: content model, block registry contract, stack, notebook page / ruler / checklist, patterns, roadmap.
+- [`learned-shape-port.md`](learned-shape-port.md): spec of the learned-node look (closed tab + band outline, ink animation); code in `app/src/core/learned-shape/`.
 - [`decisions-log.md`](decisions-log.md): every decision and assumption taken during implementation (dated, with the why).
 - Original brainstorms and implementation prompts are local-only (ignored).
 
@@ -14,6 +15,7 @@ Hierarchical map of the project. Agents: read `../AGENTS.md` first.
 | `core/registry/` | Generic registry + `defineBlock` / `defineKind` contracts | `blocks.ts` |
 | `core/content/` | Zod schemas, pure loader (`build.ts`), ID graph, Vite glob adapter, content store | `build.ts` |
 | `core/ruler/` | The ruler engine (framework-agnostic) + `useRuler` | `engine.ts` |
+| `core/learned-shape/` | Learned-node outline: pure geometry (`geometry.ts`, unit-tested) + the SVG/animation layer (`layer.ts`) fed by `views/evaluation/MarginLayer.tsx` | `geometry.ts` |
 | `core/progress/` | Progress engine (pure) + trees from content | `engine.ts` |
 | `core/vars/` | Shared page variables store + hooks | `store.ts` |
 | `core/highlighter/` | Corta's own text selection drawn as a highlighter (input, geometry, strokes, ink, store) | `engine.ts`, `strokes.ts` |

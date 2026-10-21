@@ -7,7 +7,7 @@ export function tokensToCss(): string {
   const base = [
     block(light),
     ...Object.entries(fonts).map(([k, v]) => `--f-${k}: ${v};`),
-    `--u: ${metrics.u}px; --margin: ${metrics.margin}px; --cb: ${metrics.checkbox}px; --sink: ${metrics.sink}px;`,
+    `--u: ${metrics.u}px; --margin: ${metrics.margin}px; --cb: ${metrics.checkbox}px; --cb-radius: ${metrics.checkboxRadius}px; --sink: ${metrics.sink}px;`,
     `--pencil-note-width: ${metrics.pencilNote.width}px; --pencil-note-font-size: ${metrics.pencilNote.fontSize}px;`,
     `--ease: ${motionTokens.easeCss};`,
     `--chat-width: ${metrics.chatWidth}; --chat-dock-height: ${metrics.chatDockHeight};`,

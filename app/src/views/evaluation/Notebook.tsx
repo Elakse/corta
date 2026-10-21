@@ -46,8 +46,13 @@ export function Notebook({ course, evaluation }: { course: Course; evaluation: E
     pageBridge.set(vars, evaluation.key);
     return () => pageBridge.set(null, null);
   }, [vars, evaluation.key]);
+  const fillRef = useRef<SVGSVGElement>(null);
   const [sheetEl, setSheetEl] = useState<HTMLElement | null>(null);
-  useEffect(() => setSheetEl(sheetRef.current), []);
+  const [fillEl, setFillEl] = useState<SVGSVGElement | null>(null);
+  useEffect(() => {
+    setSheetEl(sheetRef.current);
+    setFillEl(fillRef.current);
+  }, []);
 
   // ---- lazy topics
   const [mounted, setMounted] = useState<ReadonlySet<string>>(() => new Set(content.topics.slice(0, EAGER_TOPICS).map((t) => t.id)));
@@ -175,7 +180,9 @@ export function Notebook({ course, evaluation }: { course: Course; evaluation: E
         <article className="sheet" data-paper={paper} ref={sheetRef}>
           <div className="spiral" aria-hidden="true" />
           <div className="binder" aria-hidden="true" />
-          <MarginLayer nodes={mountedNodes} ruler={ruler} sheet={sheetEl} />
+          <MarginLayer nodes={mountedNodes} ruler={ruler} sheet={sheetEl} fill={fillEl} />
+          {/* learned shapes' fill: before the header so it paints under the ruled frame (core/learned-shape) */}
+          <svg className="shape-layer" ref={fillRef} aria-hidden="true" />
           <header className="head">
             <div className="rows">
               <div className="course">

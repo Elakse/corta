@@ -37,6 +37,8 @@ for a focused review, and `CORTA_GRAPHICS_WIDTH=400` for only the phone profiles
 throwaway database and makes no writes to personal progress.
 
 
+`tests/learned-shape.spec.ts` checks the learned-node outline: check draws one closed shape (fill + ink, same path), unchecking removes it, a reload brings it back with no animation running, reduced motion shows it without animating, and the tab wraps the checkbox.
+
 `tests/reading-position.spec.ts` scrolls into the sample notebook, reloads and leaves for Home and back, and checks the node returns to the same screen position (and that the top is remembered too).
 
 Tutor regressions in `tests/app.spec.ts` exercise full-card navigation, Settings persistence and

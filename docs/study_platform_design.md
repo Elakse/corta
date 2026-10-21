@@ -175,7 +175,7 @@ Implementation is undecided, but conceptually it's a **reactive system of state,
 
 - Every relevant academic element can be marked as **learned/completed** with a checkbox in the page margin. Every piece of content belongs to some checkable element, so the page is a complete checklist.
 - Marking a parent marks all descendants (topic → concepts, properties, theorems, exercises…). Marking a child marks only that child and what's inside it. Unmarking a child makes the parent partial (shown with a dash).
-- Learned content is **highlighted, not faded**: a soft highlighter wash plus a margin bar from the checkbox, so it stays easy to review.
+- Learned content is **highlighted, not faded**: the learned node is outlined as one closed shape (a tab around its checkbox continuing into a band over the node, with a green ink line and a soft wash), so it stays easy to review. Only the outermost learned node gets one; it draws itself in when you check it, never on page load.
 - So every node has a **progress %** (e.g. *Topic 2 — 73%*), which propagates to: exam overview, exam / course / semester progress, calendar, planning, next-priority recommendation and LLM context.
 - Progress is part of the **core data model**, not just a checkbox's visual state.
 
@@ -367,7 +367,7 @@ A course is not a static artifact. During the semester new classes, guides, corr
 | **Generation scope** | The user defines the scope of each run (e.g. Midterm 1 now, then Midterm 2, assignments or the final later). Courses grow piece by piece. |
 | **Progress %** | Weighted by each item's size/relevance, not just a count of items done. |
 | **Notebook page** | Evaluation pages are drawn as a spiral-notebook sheet (ruled or grid), built in code. Text always sits on the rules via the measuring "ruler" module, enforced by an automated test. Reference prototype in `../prototypes/notebook-page/`. |
-| **Checklist** | Nested margin checkboxes: parent checks its whole subtree, child checks only its own. Learned = highlighted, never faded. |
+| **Checklist** | Nested margin checkboxes: parent checks its whole subtree, child checks only its own. Learned = highlighted (tab + band outline), never faded. |
 | **Google Calendar** | **One-way sync** (app → Google) into a dedicated "Corta" calendar. Two-way sync is out of scope for now. |
 
 ---
