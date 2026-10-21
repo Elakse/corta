@@ -65,6 +65,13 @@ e2e tests). If a choice is already saved, select Offline demo in Settings instea
 
 ## How it works
 
+End a question with the standalone command `-c` (for example, `¿Qué es un autovalor? -c`) to request
+a concise answer. Before sending, `app/src/llm/message-commands.ts` removes the suffix and appends:
+“Para esta respuesta, sé conciso y andá directo al punto, sin introducciones ni detalles innecesarios.”
+The chat bubble keeps the question as typed. This also works with images and pinned references;
+quoted material is never parsed as commands. Trailing whitespace is accepted; `-c` inside a message
+or attached to a word is left alone. The instruction applies to that response.
+
 - `app/src/llm/context.ts` builds the snapshot and the system prompt.
 - `app/src/llm/ChatPanel.tsx` streams one turn at a time; when the model calls a tool, the app runs the matching
   **action** and sends the result back (up to 5 rounds).

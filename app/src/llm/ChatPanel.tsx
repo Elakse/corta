@@ -26,6 +26,7 @@ import { imagesFromClipboard, useAttachments, type Attachment } from "./attachme
 import { AttachButtons, AttachmentThumbs } from "./AttachmentBar";
 import { ReferenceBar } from "./ReferenceBar";
 import { TutorError } from "./errors";
+import { expandMessageCommands } from "./message-commands";
 
 interface DisplayItem {
   role: "user" | "assistant" | "action" | "error";
@@ -119,13 +120,15 @@ export function ChatPanel() {
     const ctrl = new AbortController();
     abort.current = ctrl;
     // Photos only (no words) still make a question.
-    const prompt = text.trim() ? text : t("chat.imageOnly");
+    const question = text.trim() ? text : t("chat.imageOnly");
+    // Bridge requests already include any command expansion and quoted course material.
+    const prompt = shown ? question : expandMessageCommands(question);
     const content: string | ChatContentBlock[] = images.length
       ? [{ type: "text", text: prompt }, ...images.map((a) => ({ type: "image" as const, mediaType: a.mediaType, data: a.data }))]
       : prompt;
     let msgs: ChatMessage[] = [...history, { role: "user", content }];
     let completedHistory = history;
-    setItems((x) => [...x, { role: "user", text: shown?.display ?? prompt, quote: shown?.quote, images: images.length ? images.map((a) => a.dataUrl) : undefined }, { role: "assistant", text: "", courseKey }]);
+    setItems((x) => [...x, { role: "user", text: shown?.display ?? question, quote: shown?.quote, images: images.length ? images.map((a) => a.dataUrl) : undefined }, { role: "assistant", text: "", courseKey }]);
     try {
       for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
         ctrl.signal.throwIfAborted();

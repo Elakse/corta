@@ -53,11 +53,16 @@ test("Referenciar pins the selection above the chat input and sends it only with
   await expect(page.getByRole("button", { name: "Enviar" })).toBeDisabled();
   await page.screenshot({ path: "test-results/selection-reference.png" });
 
-  await input.fill("¿Por qué esto es distinto de cero?");
+  await input.fill("¿Por qué esto es distinto de cero? -c");
+  const sent = page.waitForRequest((r) => r.url().endsWith("/api/llm/chat") && r.method() === "POST");
   await input.press("Enter");
+  const prompt = (await sent).postDataJSON().messages.at(-1).content as string;
+  expect(prompt).toContain("¿Por qué esto es distinto de cero?\n\nPara esta respuesta, sé conciso");
+  expect(prompt).toContain("Selected text:");
+  expect(prompt).not.toContain("¿Por qué esto es distinto de cero? -c");
   await expect(ref).toHaveCount(0);
   const user = page.locator(".m-user").last();
-  await expect(user).toContainText("¿Por qué esto es distinto de cero?");
+  await expect(user).toContainText("¿Por qué esto es distinto de cero? -c");
   await expect(user.locator(".m-quote")).toContainText("autovalor");
 });
 

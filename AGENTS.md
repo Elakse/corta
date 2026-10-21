@@ -67,6 +67,12 @@ google-calendar-setup · llm-setup · add-llm-provider · run-tests
 | 6 | Generation skill `skills/build-course/` + incremental intake `skills/course-material-intake/` | ✅ done — new material is summarized and reviewed; course content changes require approval of concrete items |
 | 7 | LLM side panel | ✅ done — reusable adapters, centered Settings with per-evaluation paper choice, saved provider/model + shortcut choices, reader-controlled streaming, responsive chat using spare desk space before narrowing the notebook + live reading context; Go activation needs a local key; chat images (files, paste, webcam photo; ≤3) + camera calibration dialog (see `docs/guides/camera.md`) |
 
+Tutor command (2026-10-21): a standalone trailing `-c` requests a concise answer via a Spanish instruction
+expanded in `app/src/llm/message-commands.ts`. Plain questions, image messages and pinned-reference
+questions use the same helper; quotes are never parsed as commands. See `docs/guides/llm-setup.md`.
+Checks: typecheck, 6 context/bridge unit tests and 8 browser cases pass (command requests, pinned
+reference and all 6 synthetic ruler variants). Live provider response brevity was not evaluated.
+
 ## Public distribution
 
 Course files and source material live locally under ignored `content/`. This repository ships no study

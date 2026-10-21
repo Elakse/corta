@@ -40,6 +40,30 @@ const scrollPosition = (page: Page) => page.locator(".chat-list").evaluate((list
   gap: list.scrollHeight - list.clientHeight - list.scrollTop,
 }));
 
+test("the concise command expands only a trailing standalone -c in the outgoing question", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Preguntar", exact: true }).click();
+  const input = page.locator(".chat-input textarea");
+  await expect(input).toBeEnabled();
+  const instruction = "Para esta respuesta, sé conciso y andá directo al punto, sin introducciones ni detalles innecesarios.";
+  for (const [question, expected] of [
+    ["¿Qué es un autovalor? -c  \n", `¿Qué es un autovalor?\n\n${instruction}`],
+    ["Ahora explicalo con más detalle", "Ahora explicalo con más detalle"],
+    ["¿Qué significa -c en este ejemplo?", "¿Qué significa -c en este ejemplo?"],
+    ["palabra-c", "palabra-c"],
+    ["¿Qué es un autovalor? -s", "¿Qué es un autovalor? -s"],
+  ]) {
+    await input.fill(question!);
+    const sent = page.waitForRequest((r) => r.url().endsWith("/api/llm/chat") && r.method() === "POST");
+    await input.press("Enter");
+    const body = (await sent).postDataJSON();
+    expect(body.messages.at(-1).content).toBe(expected);
+    expect(body.system).not.toContain(instruction);
+    await expect(page.locator(".m-user").last()).toHaveText(question!.trim());
+    await expect(page.locator(".chat-head button").first()).toBeEnabled();
+  }
+});
+
 for (const width of [1440, 400]) {
   test(`streaming chat preserves reading position and resumes following at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 850 });

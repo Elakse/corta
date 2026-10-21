@@ -4,6 +4,7 @@
  */
 import { create } from "zustand";
 import { useUi } from "@/state/ui";
+import { expandMessageCommands } from "./message-commands";
 
 export interface TutorRequest {
   /** what the model receives */
@@ -54,7 +55,7 @@ export function passageBlock({ text, nodeId, nodeTitle }: TutorReference) {
 /** The user's own question about a pinned passage. */
 export function referenceRequest(reference: TutorReference, question: string): TutorRequest {
   return {
-    prompt: `${question}\n\n${passageBlock(reference)}`,
+    prompt: `${expandMessageCommands(question)}\n\n${passageBlock(reference)}`,
     display: question,
     quote: reference.text,
     nodeId: reference.nodeId ?? undefined,

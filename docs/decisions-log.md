@@ -224,6 +224,12 @@ Format: date · decision · why.
 |---|---|---|
 | 108 | Apply approved intake items R01–R04 within the existing PD and exhaustive-search nodes: counting/decision, reconstruction and memory dependencies, copying the saved best candidate, and optional MRV/domain restoration. Preserve IDs and cite exact video passages as supplementary evidence. | Alejo approved all four concrete items after independent comparison with the local guides and sources. These changes clarify existing material without importing another chair's requirements or solving assignments. |
 
+## 2026-10-21 · Concise tutor command
+
+| # | Decision | Why |
+|---|---|---|
+| 109 | Expand a standalone trailing `-c` in the reader's question into a short Spanish instruction requesting a concise, direct answer for that response. Use one pure helper before composing references or image content; keep the typed question in the bubble and leave quoted material untouched. | Alejo requested a code-handled command instead of asking the model to interpret the suffix. It works across providers without changing the base prompt or adding persistent settings. |
+
 ## 2026-10-21 · Learned-node shape
 
 | # | Decision | Why |
