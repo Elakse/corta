@@ -88,6 +88,12 @@ Outstanding: the existing Windows path expectation in `sources.test.ts`, clipped
 the synthetic mobile canvas, and missing 3D KaTeX labels in both math-label tests. No app code was
 changed for this Git migration; real-course rendering was not part of the clean-export suite.
 
+PDP Parcial 2 (2026-11-06): notebook built at `content/semesters/2026-C2/courses/pdp/evaluations/parcial-2/`
+(7 topics: el parcial, lambda, funcional/Scala, lógico/Prolog, concurrencia, eventos, elección + lineal; 181 new
+coverage items, 0 unresolved). Exam moved to Thursday 12/11 (confirmed by Alejo). Scope and exclusions in
+`processed/notes.md` and decisions 113-115. Checks on a Linux copy: validate 0/0, coverage, ruler 6/6
+(1300/900/400px, light/dark, 0 off-rule lines); unit and other e2e tests not run (content-only change).
+
 Local intake status (2026-10-15): PDP's course info includes the official schedule, staff, regime,
 TPs and evaluation dates. P1 now includes an independently reviewed supplement from 20 P1/transversal
 channel videos; see `content/semesters/2026-C2/courses/pdp/processed/transcript-course-review.md`.
