@@ -64,6 +64,10 @@
 .flow [data-rl="text"] { position: relative; }
 .flow p, .flow li { margin: 0; max-width: 68ch; }
 .flow ul, .flow ol { margin: 0; padding-left: 1.4em; }
+/* Tailwind preflight strips list markers (ol, ul { list-style: none }); notebook prose needs them back */
+.flow ul { list-style: disc; }
+.flow ol { list-style: decimal; }
+.flow li::marker { color: var(--ink-soft); }
 .flow .rl-h { margin: 0; font: 700 18px/var(--u) var(--f-display); }
 .flow a { color: var(--pen); text-underline-offset: 3px; }
 .flow mark { background: linear-gradient(transparent 38%, var(--hl) 38%, var(--hl) 88%, transparent 88%); color: inherit; padding: 0 .1em; }
